@@ -1,5 +1,11 @@
 # Rack
 
+## Abstract
+
+Rack is is the powerful tool that our favorite ruby web frameworks are built on, but how much do you understand how it works. In first part of the talk we'll look at the anatomy of basic Rack app and middleware to see how we can.
+
+We will then examine example of how rack can used to solve elegantly and clean up your application code.
+
 !SLIDE
 
 # Rack
