@@ -2,9 +2,11 @@
 
 ## Abstract
 
-Rack is is the powerful tool that our favorite ruby web frameworks are built on, but how much do you understand how it works. In first part of the talk we'll look at the anatomy of basic Rack app and middleware to see how we can.
+Rack is is the powerful tool that our favorite ruby web frameworks are built on, but how much do you know about how it works? In the first part of the talk we'll look at the anatomy Rack and how it's simple composeable interface can be leverage to make our Ruby web apps better.  In doing so we'll see how simple it is to get a Rack application up and running.
 
-We will then examine example of how rack can used to solve elegantly and clean up your application code.
+We'll then look at a number of real world examples of how Rack and Rack Middleware can be used to elegantly solve problems, speed up your applications, improve your development environment, and clean up your application code.
+
+Caleb Woods especially enjoys solving business problems with technology in a lean approach.  At RoleModel Software he works with clients solving problems with Ruby and Service Oriented Architecture.  Caleb is also passionate about mentorship and is always looking for ways to teach and learn from other developers.
 
 !SLIDE
 
@@ -14,6 +16,7 @@ We will then examine example of how rack can used to solve elegantly and clean u
 
 ## What is Rack
 
+* http://yeahnah.org/files/rack-presentation-oct-07.pdf
 * Definition of Protocol
 * Rack::Lint
 
@@ -47,6 +50,7 @@ We will then examine example of how rack can used to solve elegantly and clean u
 
 * Sidekiq
 * Grape
+* How does the routing work?
 
 !SLIDE left
 
