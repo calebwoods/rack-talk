@@ -34,17 +34,261 @@
     <section class='left slide'>
       <div class='spacer top'></div>
       <div class='content'>
-        <h2>Some sample code</h2>
+        <h2>What is Rack</h2>
         
-        <p><textarea class='code' display='none' mode='ruby'>def method&#x000A;  puts "Hello, World"&#x000A;end</textarea>
+        <ul>
+        <li>Project website: Rack provides a minimal interface between webservers supporting Ruby and Ruby frameworks.</li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2><a href="http://rack.rubyforge.org/doc/SPEC.html">Rack Spec</a></h2>
+        
+        <ul>
+        <li>Ruby class that responds to <code>call</code></li>
+        <li>Take 1 argument the <code>environment</code></li>
+        <li>Returns an Array with 3 values: status, headers, and body</li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Simplest Example</h2>
+        
+        <p><textarea class='code' display='none' mode='ruby'># examples/1_simple.ru&#x000A;&#x000A;run lambda { |env| [200, {}, ['Hello World!']] }</textarea>
+    </p>
+        
+        <ul>
+        <li>Lambda responds to call</li>
+        <li><code>body</code> is an Array because it needs to respond to each</li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Class Example</h2>
+        
+        <p><textarea class='code' display='none' mode='ruby'># examples/2_class.ru&#x000A;&#x000A;class App&#x000A;&#x000A;  def call(env)&#x000A;    [200, {}, ['Hello World!']]&#x000A;  end&#x000A;&#x000A;end&#x000A;&#x000A;run App.new</textarea>
     </p>
       </div>
       <div class='spacer bottom'></div>
     </section>
-    <section class='slide'>
+    <section class='left slide'>
       <div class='spacer top'></div>
       <div class='content'>
+        <h2>Middleware</h2>
         
+        <ul>
+        <li>Allows you compose a stack of Rack applications</li>
+        <li><a href="http://rack.rubyforge.org/doc/Rack/Builder.html">Rack::Build</a> gives us a small DSL to construct our apps</li>
+        </ul>
+        
+        
+        <p><textarea class='code' display='none' mode='ruby'># examples/3_middleware.ru&#x000A;&#x000A;class ContentLegthMiddleware&#x000A;&#x000A;  def initialize(app)&#x000A;    @app = app&#x000A;  end&#x000A;&#x000A;  def call(env)&#x000A;    # do work&#x000A;  end&#x000A;end&#x000A;&#x000A;use ContentLegthMiddleware&#x000A;run lambda { |env| [200, {}, ['Hello World!']] }</textarea>
+    </p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2><a href="http://rack.rubyforge.org/doc/Rack/Lint.html">Rack::Lint</a></h2>
+        
+        <ul>
+        <li>Validates your application/middleware against the <a href="http://rack.rubyforge.org/doc/SPEC.html">Rack Spec</a></li>
+        <li>When used will show an error page if app violates spec</li>
+        </ul>
+        
+        
+        <p><textarea class='code' display='none' mode='ruby'># example/4_lint.ru&#x000A;&#x000A;use Rack::Lint&#x000A;run lambda { |env| [204, {'Content-Length' => '12'}, ['Hello World!']] }</textarea>
+    </p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2><a href="http://rack.rubyforge.org/doc/Rack/URLMap.html">Rack::URLMap</a></h2>
+        
+        <ul>
+        <li>Allows you construct a hash mapping of urls to Rack apps</li>
+        <li>Works by changing the SCRIPT_NAME and PATH_INFO variables when dispatching</li>
+        </ul>
+        
+        
+        <p><textarea class='code' display='none' mode='ruby'># examples/5_map.ru&#x000A;&#x000A;map "/app_1" do&#x000A;  run lambda { |env| [200, {}, ['Hello from app_1!']] }&#x000A;end&#x000A;&#x000A;map "/app_2" do&#x000A;  map "/nested" do&#x000A;    run lambda { |env| [200, {}, ["SCRIPT_NAME: #{env['SCRIPT_NAME']}\nPATH_INFO: #{env['PATH_INFO']}"]] }&#x000A;  end&#x000A;  run lambda { |env| [200, {}, ['Hello from app_2!']] }&#x000A;end&#x000A;&#x000A;run lambda { |env| [200, {}, ["PATH_INFO: #{env['PATH_INFO']}"]] }</textarea>
+    </p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Rails Router</h2>
+        
+        <p>The <a href="https://github.com/rails/rails/blob/master/actionpack/lib/action_dispatch/routing/mapper.rb">Rails Router</a> uses the same principle, every action is Rack app</p>
+        
+        <p><textarea class='code' display='none' mode='ruby'># This standard route&#x000A;get "/", to: "posts#index"&#x000A;&#x000A;# maps to&#x000A;get "/", to: PostsController.action(:index)</textarea>
+    </p>
+        
+        <p><textarea class='code' display='none' mode='ruby'>mount SintraApp, at: "/sinatra"</textarea>
+    </p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Rails Router</h2>
+        
+        <h3>Match vs Mount</h3>
+        
+        <ul>
+        <li>Match (get, post, ..) - matches on full path</li>
+        <li>Mount (SintraApp) - matches on the path prefix</li>
+        </ul>
+        
+        
+        <p><textarea class='code' display='none' mode='ruby'># REQUEST: GET /sinatra/sub_route&#x000A;&#x000A;get "/sinatra/specific", to: "posts#index"&#x000A;&#x000A;mount SintraApp, at: "/sinatra"&#x000A;&#x000A;# other uses&#x000A;mount Sidekiq, at: "/sidekiq"&#x000A;mount Grape::API, at: "/api"</textarea>
+    </p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Rack in the Wild</h2>
+        
+        <ul>
+        <li>How can we leverage Rack in the Rails apps we are building</li>
+        <li>Examples from Rails and personal usage</li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>rake middleware</h2>
+        
+        <p><textarea class='code' display='none' mode='ruby'># rails 4 app with Devise&#x000A;use ActionDispatch::Static&#x000A;use Rack::Lock&#x000A;use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ff9c2f32d48>&#x000A;use Rack::Runtime&#x000A;use Rack::MethodOverride&#x000A;use ActionDispatch::RequestId&#x000A;use Rails::Rack::Logger&#x000A;use ActionDispatch::ShowExceptions&#x000A;use ActionDispatch::DebugExceptions&#x000A;use ActionDispatch::RemoteIp&#x000A;use ActionDispatch::Reloader&#x000A;use ActionDispatch::Callbacks&#x000A;use ActiveRecord::Migration::CheckPending&#x000A;use ActiveRecord::ConnectionAdapters::ConnectionManagement&#x000A;use ActiveRecord::QueryCache&#x000A;use ActionDispatch::Cookies&#x000A;use ActionDispatch::Session::CookieStore&#x000A;use ActionDispatch::Flash&#x000A;use ActionDispatch::ParamsParser&#x000A;use Rack::Head&#x000A;use Rack::ConditionalGet&#x000A;use Rack::ETag&#x000A;use Warden::Manager&#x000A;run Sample::Application.routes</textarea>
+    </p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Rack Cache</h2>
+        
+        <ul>
+        <li>The middleware you don't know you use</li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Idempotent Post</h2>
+        
+        <ul>
+        <li>Define idempotent</li>
+        <li>Mobile sometimes connected app</li>
+        <li>Payment Form
+        
+        <ul>
+        <li>Rails CRFM</li>
+        </ul>
+        </li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>App Status</h2>
+        
+        <ul>
+        <li><a href="https://github.com/jbarnette/pinglish">Pinglish</a></li>
+        <li>More about app status than 200 OK</li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Turbo Dev</h2>
+        
+        <ul>
+        <li>Only server assets if they've changed while in dev</li>
+        <li>Source: https://github.com/discourse/discourse/blob/master/lib/middleware/turbo_dev.rb</li>
+        </ul>
+        
+        
+        <h2>Compression</h2>
+        
+        <ul>
+        <li>Gzip compression</li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Cucumber Test Login Backdoor</h2>
+        
+        <ul>
+        <li>Show devise sample code devise</li>
+        <li>Source: http://robots.thoughtbot.com/post/37907699673/faster-tests-sign-in-through-the-back-door</li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>External Request when Testing</h2>
+        
+        <ul>
+        <li>SpreedlyCore middleware</li>
+        <li>Allows the use of VCR</li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Gems that leverage Middleware</h2>
+        
+        <ul>
+        <li><a href="https://github.com/charliesome/better_errors">Better Errors</a></li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Other ideas</h2>
+        
+        <ul>
+        <li><a href="https://github.com/rack/rack-contrib/blob/master/lib/rack/contrib/mailexceptions.rb">Email Exceptions</a></li>
+        <li><a href="https://github.com/rack/rack/blob/master/lib/rack/directory.rb">Directory Viewer</a></li>
+        <li><a href="https://github.com/minad/rack-embed">Rack Embed</a></li>
+        <li><a href="https://github.com/cookrn/chrome_logger">Chrome Logger</a></li>
+        </ul>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -60,6 +304,9 @@
         <li>Great look how Rails uses Rack internally</li>
         </ul>
         </li>
+        <li>RailsCast - <a href="http://railscasts.com/episodes/317-rack-app-from-scratch">Rack App from Scratch</a></li>
+        <li>Jason Seifer - <a href="http://jasonseifer.com/2009/04/08/32-rack-resources-to-get-you-started">32 Rack Resources to get you Started</a></li>
+        <li><a href="https://github.com/rack/rack/wiki/List-of-Middleware">List of Rack Middleware</a></li>
         </ul>
       </div>
       <div class='spacer bottom'></div>

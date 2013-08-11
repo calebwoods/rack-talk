@@ -16,49 +16,192 @@ Caleb Woods especially enjoys solving business problems with technology in a lea
 
 ## What is Rack
 
-* http://yeahnah.org/files/rack-presentation-oct-07.pdf
-* Definition of Protocol
-* Rack::Lint
+* Project website: Rack provides a minimal interface between webservers supporting Ruby and Ruby frameworks.
+
+!NOTES
+
+http://rack.github.io/
+Rack::Lint
+http://yeahnah.org/files/rack-presentation-oct-07.pdf
 
 !SLIDE left
 
-## How Simple Can Rack App Be?
+## [Rack Spec](http://rack.rubyforge.org/doc/SPEC.html)
+
+* Ruby class that responds to `call`
+* Take 1 argument the `environment`
+* Returns an Array with 3 values: status, headers, and body
+
+!SLIDE left
+
+## Simplest Example
+
+```ruby
+# examples/1_simple.ru
+
+run lambda { |env| [200, {}, ['Hello World!']] }
+```
 
 * Lambda responds to call
-* Show code
-* Show on heroku
+* `body` is an Array because it needs to respond to each
+
+!SLIDE left
+
+## Class Example
+
+```ruby
+# examples/2_class.ru
+
+class App
+
+  def call(env)
+    [200, {}, ['Hello World!']]
+  end
+
+end
+
+run App.new
+```
 
 !SLIDE left
 
 ## Middleware
 
-* Stack of Rack Applications
-* Call chain
-* Demonstrate call chain with sample code
+* Allows you compose a stack of Rack applications
+* [Rack::Build](http://rack.rubyforge.org/doc/Rack/Builder.html) gives us a small DSL to construct our apps
+
+```ruby
+# examples/3_middleware.ru
+
+class ContentLegthMiddleware
+
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    # do work
+  end
+end
+
+use ContentLegthMiddleware
+run lambda { |env| [200, {}, ['Hello World!']] }
+```
+!SLIDE left
+
+## [Rack::Lint](http://rack.rubyforge.org/doc/Rack/Lint.html)
+
+* Validates your application/middleware against the [Rack Spec](http://rack.rubyforge.org/doc/SPEC.html)
+* When used will show an error page if app violates spec
+
+```ruby
+# example/4_lint.ru
+
+use Rack::Lint
+run lambda { |env| [204, {'Content-Length' => '12'}, ['Hello World!']] }
+```
 
 !SLIDE left
 
-## Rack Routing with Mapping
+## [Rack::URLMap](http://rack.rubyforge.org/doc/Rack/URLMap.html)
 
-* Looking to and provide example
-* Use to build simple sinatra
-* https://medium.com/ruby-on-rails/71f94858320
+* Allows you construct a hash mapping of urls to Rack apps
+* Works by changing the SCRIPT_NAME and PATH_INFO variables when dispatching
+
+```ruby
+# examples/5_map.ru
+
+map "/app_1" do
+  run lambda { |env| [200, {}, ['Hello from app_1!']] }
+end
+
+map "/app_2" do
+  map "/nested" do
+    run lambda { |env| [200, {}, ["SCRIPT_NAME: #{env['SCRIPT_NAME']}\nPATH_INFO: #{env['PATH_INFO']}"]] }
+  end
+  run lambda { |env| [200, {}, ['Hello from app_2!']] }
+end
+
+run lambda { |env| [200, {}, ["PATH_INFO: #{env['PATH_INFO']}"]] }
+```
 
 !SLIDE left
 
-## Mounting an app inside an App - Meta
+## Rails Router
 
-* Sidekiq
-* Grape
-* How does the routing work?
+The [Rails Router](https://github.com/rails/rails/blob/master/actionpack/lib/action_dispatch/routing/mapper.rb) uses the same principle, every action is Rack app
+
+```ruby
+# This standard route
+get "/", to: "posts#index"
+
+# maps to
+get "/", to: PostsController.action(:index)
+```
+
+```ruby
+mount SintraApp, at: "/sinatra"
+```
 
 !SLIDE left
 
-## How can we use this in the wild
+## Rails Router
 
-* Examples from usage at RoleModel
-* You use a lot of middleware already
-  * rake middleware
+### Match vs Mount
+
+* Match (get, post, ..) - matches on full path
+* Mount (SintraApp) - matches on the path prefix
+
+```ruby
+# REQUEST: GET /sinatra/sub_route
+
+get "/sinatra/specific", to: "posts#index"
+
+mount SintraApp, at: "/sinatra"
+
+# other uses
+mount Sidekiq, at: "/sidekiq"
+mount Grape::API, at: "/api"
+```
+
+!SLIDE left
+
+## Rack in the Wild
+
+* How can we leverage Rack in the Rails apps we are building
+* Examples from Rails and personal usage
+
+!SLIDE left
+
+## rake middleware
+
+```ruby
+# rails 4 app with Devise
+use ActionDispatch::Static
+use Rack::Lock
+use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ff9c2f32d48>
+use Rack::Runtime
+use Rack::MethodOverride
+use ActionDispatch::RequestId
+use Rails::Rack::Logger
+use ActionDispatch::ShowExceptions
+use ActionDispatch::DebugExceptions
+use ActionDispatch::RemoteIp
+use ActionDispatch::Reloader
+use ActionDispatch::Callbacks
+use ActiveRecord::Migration::CheckPending
+use ActiveRecord::ConnectionAdapters::ConnectionManagement
+use ActiveRecord::QueryCache
+use ActionDispatch::Cookies
+use ActionDispatch::Session::CookieStore
+use ActionDispatch::Flash
+use ActionDispatch::ParamsParser
+use Rack::Head
+use Rack::ConditionalGet
+use Rack::ETag
+use Warden::Manager
+run Sample::Application.routes
+```
 
 !SLIDE left
 
@@ -83,6 +226,11 @@ Caleb Woods especially enjoys solving business problems with technology in a lea
 * More about app status than 200 OK
 
 !SLIDE left
+
+## Turbo Dev
+
+* Only server assets if they've changed while in dev
+* Source: https://github.com/discourse/discourse/blob/master/lib/middleware/turbo_dev.rb
 
 ## Compression
 
