@@ -23,12 +23,27 @@
 .deck-container .slide .deck-codemirror-result,
 .deck-container .slide .CodeMirror {
   font-family: Menlo, "Bitstream Vera Sans Mono", "DejaVu Sans Mono", Monaco, Consolas, monospace !important;
-  line-height: 1.2;
-  width: 60em;
+  line-height: 1.1;
   border: 0 !important;
 }
 
 .deck-container .slide.snippet .deck-codemirror-result,
 .deck-container .slide.snippet .CodeMirror {
   font-size: 1.5rem !important;
+}
+
+.run-example {
+  background: #333;
+  color: white;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding: 5px 0 5px 20px !important;
+  margin-right: -20px;
+}
+
+.run-example span {
+  color: #333;
+  background: #ececec;
+  padding: 4px;
 }

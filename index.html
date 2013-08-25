@@ -67,6 +67,13 @@
         <li>Lambda responds to call</li>
         <li><code>body</code> is an Array because it needs to respond to each</li>
         </ul>
+        
+        
+        <div class="run-example">
+          curl -i localhost:5000
+          <span data-url="http://localhost:5000" data-result="#result1">Run</span>
+          <div id="result1"></div>
+        </div>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -77,6 +84,12 @@
         
         <p><textarea class='code' display='none' mode='ruby'># examples/2_class.ru&#x000A;&#x000A;class App&#x000A;&#x000A;  def call(env)&#x000A;    [200, {}, ['Hello World!']]&#x000A;  end&#x000A;&#x000A;end&#x000A;&#x000A;run App.new</textarea>
     </p>
+        
+        <div class="run-example">
+          curl -i localhost:5100
+          <span data-url="http://localhost:5100" data-result="#result2">Run</span>
+          <div id="result2"></div>
+        </div>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -91,8 +104,14 @@
         </ul>
         
         
-        <p><textarea class='code' display='none' mode='ruby'># examples/3_middleware.ru&#x000A;&#x000A;class ContentLegthMiddleware&#x000A;&#x000A;  def initialize(app)&#x000A;    @app = app&#x000A;  end&#x000A;&#x000A;  def call(env)&#x000A;    # do work&#x000A;  end&#x000A;end&#x000A;&#x000A;use ContentLegthMiddleware&#x000A;run lambda { |env| [200, {}, ['Hello World!']] }</textarea>
+        <p><textarea class='code' display='none' mode='ruby'># examples/3_middleware.ru&#x000A;&#x000A;class ContentLengthMiddleware&#x000A;  def initialize(app)&#x000A;    @app = app&#x000A;  end&#x000A;&#x000A;  def call(env)&#x000A;    # do work&#x000A;  end&#x000A;end&#x000A;&#x000A;use ContentLengthMiddleware&#x000A;run lambda { |env| [200, {}, ['Hello World!']] }</textarea>
     </p>
+        
+        <div class="run-example">
+          curl -i localhost:5200
+          <span data-url="http://localhost:5200" data-result="#result3">Run</span>
+          <div id="result3"></div>
+        </div>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -109,6 +128,10 @@
         
         <p><textarea class='code' display='none' mode='ruby'># example/4_lint.ru&#x000A;&#x000A;use Rack::Lint&#x000A;run lambda { |env| [204, {'Content-Length' => '12'}, ['Hello World!']] }</textarea>
     </p>
+        
+        <div class="run-example">
+          curl -I localhost:5300
+        </div>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -125,6 +148,13 @@
         
         <p><textarea class='code' display='none' mode='ruby'># examples/5_map.ru&#x000A;&#x000A;map "/app_1" do&#x000A;  run lambda { |env| [200, {}, ['Hello from app_1!']] }&#x000A;end&#x000A;&#x000A;map "/app_2" do&#x000A;  map "/nested" do&#x000A;    run lambda { |env| [200, {}, ["SCRIPT_NAME: #{env['SCRIPT_NAME']}\nPATH_INFO: #{env['PATH_INFO']}"]] }&#x000A;  end&#x000A;  run lambda { |env| [200, {}, ['Hello from app_2!']] }&#x000A;end&#x000A;&#x000A;run lambda { |env| [200, {}, ["PATH_INFO: #{env['PATH_INFO']}"]] }</textarea>
     </p>
+        
+        <div class="run-example">
+          curl -i localhost:5400
+          curl -i localhost:5400/app_1
+          curl -i localhost:5400/app_2
+          curl -i localhost:5400/app_2/nested
+        </div>
       </div>
       <div class='spacer bottom'></div>
     </section>

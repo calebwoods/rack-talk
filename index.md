@@ -45,6 +45,12 @@ run lambda { |env| [200, {}, ['Hello World!']] }
 * Lambda responds to call
 * `body` is an Array because it needs to respond to each
 
+<div class="run-example">
+  curl -i localhost:5000
+  <span data-url="http://localhost:5000" data-result="#result1">Run</span>
+  <div id="result1"></div>
+</div>
+
 !SLIDE left snippet
 
 ## Class Example
@@ -62,6 +68,11 @@ end
 
 run App.new
 ```
+<div class="run-example">
+  curl -i localhost:5100
+  <span data-url="http://localhost:5100" data-result="#result2">Run</span>
+  <div id="result2"></div>
+</div>
 
 !SLIDE left
 
@@ -86,6 +97,13 @@ end
 use ContentLengthMiddleware
 run lambda { |env| [200, {}, ['Hello World!']] }
 ```
+
+<div class="run-example">
+  curl -i localhost:5200
+  <span data-url="http://localhost:5200" data-result="#result3">Run</span>
+  <div id="result3"></div>
+</div>
+
 !SLIDE left
 
 ## [Rack::Lint](http://rack.rubyforge.org/doc/Rack/Lint.html)
@@ -99,6 +117,10 @@ run lambda { |env| [200, {}, ['Hello World!']] }
 use Rack::Lint
 run lambda { |env| [204, {'Content-Length' => '12'}, ['Hello World!']] }
 ```
+
+<div class="run-example">
+  curl -I localhost:5300
+</div>
 
 !SLIDE left
 
@@ -123,6 +145,13 @@ end
 
 run lambda { |env| [200, {}, ["PATH_INFO: #{env['PATH_INFO']}"]] }
 ```
+
+<div class="run-example">
+  curl -i localhost:5400
+  curl -i localhost:5400/app_1
+  curl -i localhost:5400/app_2
+  curl -i localhost:5400/app_2/nested
+</div>
 
 !SLIDE left snippet
 
