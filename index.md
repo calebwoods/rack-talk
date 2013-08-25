@@ -223,6 +223,7 @@ run Sample::Application.routes
 ## App Status
 
 * [Pinglish](https://github.com/jbarnette/pinglish)
+* https://github.com/TheClimateCorporation/unicorn-metrics
 * More about app status than 200 OK
 
 !SLIDE left
