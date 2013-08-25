@@ -166,13 +166,6 @@ mount Grape::API, at: "/api"
 
 !SLIDE left
 
-## Rack in the Wild
-
-* How can we leverage Rack in the Rails apps we are building
-* Examples from Rails and personal usage
-
-!SLIDE left
-
 ## rake middleware
 
 ```ruby
@@ -203,20 +196,145 @@ use Warden::Manager
 run Sample::Application.routes
 ```
 
+!SLIDE
+
+}}} images/field.jpg::http://www.flickr.com/photos/arturstaszewski/7048604301
+
+# Rack in the "field"
+
+!SLIDE diagram
+
+## Normal API POST Request
+
+![API Normal](images/api_normal.png)
+
+!NOTES
+
+http://www.websequencediagrams.com/cgi-bin/cdraw?lz=aVBhZC0-UmFpbHM6IFBPU1QgUmVxdWVzdApub3RlIHJpZ2h0IG9mIAAbBwAkBSBjcmVhdGVzIG9iamVjdAoAOQUtPmlQYWQ6IFJlc3BvbnNlCg&s=napkin
+
+!SLIDE diagram
+
+## iPad Drops Connection
+
+![API Dropped](images/api_default.png)
+
+!NOTES
+
+http://www.websequencediagrams.com/cgi-bin/cdraw?lz=aVBhZC0-UmFpbHM6IFBPU1QgUmVxdWVzdApub3RlIHJpZ2h0IG9mIAAbBwAkBSBjcmVhdGVzIG9iamVjdCBpZDogMQoAPwUtLT4-aVBhZDogUmVzcG9uc2UgMjAwIC0gaVBhZCBsb3N0IGNvbm5lY3Rpb24KAHANUmV0cnkARzwyAHwHAG4TCg&s=napkin
+
+!SLIDE diagram
+
+## Desired Results
+
+![API Dedup](images/api_desired.png)
+
+!NOTES
+
+http://www.websequencediagrams.com/cgi-bin/cdraw?lz=aVBhZC0-UmFpbHM6IFBPU1QgUmVxdWVzdApub3RlIHJpZ2h0IG9mIAAbBwAkBSBjcmVhdGVzIG9iamVjdCBpZDogMQoAPwUtLT4-aVBhZDogUmVzcG9uc2UgMjAwIC0gaVBhZCBsb3N0IGNvbm5lY3Rpb24KAHANUmV0cnkAWilzZWVzIGR1cGxpY2F0ZWQAdwcAbBA0MDkgLSBTYW1lIGJvZHkgYXMAgSYH&s=napkin
+
+!SLIDE left
+
+## How can we solve this?
+
+* Ruby Module
+* Client Defined UUID
+* Rack Middleware
+
+!SLIDE
+
+```ruby
+module Rack
+  class IdempotentPost
+    def initialize(app)
+      @app = app
+    end
+
+    def call(env)
+      return @app.call(env) unless env['REQUEST_METHOD'] == 'POST'
+
+      dup_check = DuplicationChecker.new env
+
+      if dup_check.duplicate?
+        headers, body = dup_check.response
+        [409, headers, body]
+      else
+        status, headers, body = @app.call(env)
+        dup_check.cache_response(status, headers, body)
+        [status, headers, body]
+      end
+
+    end
+
+    class DuplicationChecker
+    ...
+    end
+  end
+end
+```
+
+!SLIDE
+
+```ruby
+class DuplicationChecker
+  attr_reader :token, :uri, :raw_post_data
+
+  def initialize(env)
+    @token = http_basic_username(env['HTTP_AUTHORIZATION'])
+    @uri = env['PATH_INFO']
+    @raw_post_data = env['rack.input'].read
+  end
+
+  def duplicate?
+    cacheable_request && !!redis.get(hash_key)
+  end
+
+  def cache_response(status, headers, body)
+    return unless cacheable_request && [200, 201].include? status
+    CachedPostResponse.create(hash_key: hash_key,
+                              duplication_key: duplication_key,
+                              response: [headers, body].to_json)
+    redis.setex(hash_key, CachedPostResponse::KEY_TTL, true)
+  end
+
+  def response
+    cached = CachedPostResponse.where(hash_key: hash_key, duplication_key: duplication_key).first
+    JSON.parse(cached.response)
+  end
+
+  def hash_key; duplication_key.hash.to_s; end
+
+  def duplication_key
+    @duplication_key ||= "#{token}|#{uri}|#{raw_post_data}"
+  end
+
+  def cacheable_request; !raw_post_data.empty? && uri; end
+end
+```
+
+!SLIDE left
+
+## Idempotent Post Middleware
+
+* Make no changes to your app
+* Client just needs handle 409 response
+* Can be useful in other part of app
+  * Double submitting forms
+
+!SLIDE left
+
+## Other ways to use Middleware
+
+* Caching
+* Speed up Development & Test Environment
+* App Monitoring
+* Compression
+
 !SLIDE left
 
 ## Rack Cache
 
 * The middleware you don't know you use
-
-!SLIDE left
-
-## Idempotent Post
-
-* Define idempotent
-* Mobile sometimes connected app
-* Payment Form
-  * Rails CRFM
+* [Rack Cache Blog Post by Ryan Tomayko](http://tomayko.com/writings/things-caches-do)
 
 !SLIDE left
 
@@ -232,10 +350,6 @@ run Sample::Application.routes
 
 * Only server assets if they've changed while in dev
 * Source: https://github.com/discourse/discourse/blob/master/lib/middleware/turbo_dev.rb
-
-## Compression
-
-* Gzip compression
 
 !SLIDE left
 
@@ -253,6 +367,15 @@ run Sample::Application.routes
 
 !SLIDE left
 
+## Compression
+
+* Gzip compression - [Rack::Deflater](https://github.com/rack/rack/blob/master/lib/rack/deflater.rb)
+  * [Slide Deck](http://calebwoods.github.io/http-compression-rails)
+  * [Testing Gist](https://gist.github.com/calebwoods/5615260)
+* Inline images - [Rack Embed](https://github.com/minad/rack-embed)
+
+!SLIDE left
+
 ## Gems that leverage Middleware
 
 * [Better Errors](https://github.com/charliesome/better_errors)
@@ -263,15 +386,26 @@ run Sample::Application.routes
 
 * [Email Exceptions](https://github.com/rack/rack-contrib/blob/master/lib/rack/contrib/mailexceptions.rb)
 * [Directory Viewer](https://github.com/rack/rack/blob/master/lib/rack/directory.rb)
-* [Rack Embed](https://github.com/minad/rack-embed)
 * [Chrome Logger](https://github.com/cookrn/chrome_logger)
 
 !SLIDE
 
-# Further Reading/Watching
+# Questions
+
+!SLIDE left
+
+# Resources
 
 * Jose Valim - [You've a got a Sinatra on your Rails [RailsConf 2013]](http://www.confreaks.com/videos/2442-railsconf2013-you-ve-got-a-sinatra-on-your-rails)
   * Great look how Rails uses Rack internally
 * RailsCast - [Rack App from Scratch](http://railscasts.com/episodes/317-rack-app-from-scratch)
 * Jason Seifer - [32 Rack Resources to get you Started](http://jasonseifer.com/2009/04/08/32-rack-resources-to-get-you-started)
 * [List of Rack Middleware](https://github.com/rack/rack/wiki/List-of-Middleware)
+
+!SLIDE left
+
+# Feedback
+
+* Github repo:
+* Email: [caleb.woods@rolemodelsoftware.com](mailto:caleb.woods@rolemodelsoftware.com)
+* Traingle.rb Mailing List

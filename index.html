@@ -164,11 +164,93 @@
     <section class='left slide'>
       <div class='spacer top'></div>
       <div class='content'>
-        <h2>Rack in the Wild</h2>
+        <h2>rake middleware</h2>
+        
+        <p><textarea class='code' display='none' mode='ruby'># rails 4 app with Devise&#x000A;use ActionDispatch::Static&#x000A;use Rack::Lock&#x000A;use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ff9c2f32d48>&#x000A;use Rack::Runtime&#x000A;use Rack::MethodOverride&#x000A;use ActionDispatch::RequestId&#x000A;use Rails::Rack::Logger&#x000A;use ActionDispatch::ShowExceptions&#x000A;use ActionDispatch::DebugExceptions&#x000A;use ActionDispatch::RemoteIp&#x000A;use ActionDispatch::Reloader&#x000A;use ActionDispatch::Callbacks&#x000A;use ActiveRecord::Migration::CheckPending&#x000A;use ActiveRecord::ConnectionAdapters::ConnectionManagement&#x000A;use ActiveRecord::QueryCache&#x000A;use ActionDispatch::Cookies&#x000A;use ActionDispatch::Session::CookieStore&#x000A;use ActionDispatch::Flash&#x000A;use ActionDispatch::ParamsParser&#x000A;use Rack::Head&#x000A;use Rack::ConditionalGet&#x000A;use Rack::ETag&#x000A;use Warden::Manager&#x000A;run Sample::Application.routes</textarea>
+    </p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='field full-background slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h1>Rack in the "field"</h1>
+      </div>
+      <div class='spacer bottom'></div>
+      <div class='attribution '>
+        <a target='_blank'>http://www.flickr.com/photos/arturstaszewski/7048604301</a>
+      </div>
+    </section>
+    <section class='diagram slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Normal API POST Request</h2>
+        
+        <p><img src="images/api_normal.png" alt="API Normal" /></p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='diagram slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>iPad Drops Connection</h2>
+        
+        <p><img src="images/api_default.png" alt="API Dropped" /></p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='diagram slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Desired Results</h2>
+        
+        <p><img src="images/api_desired.png" alt="API Dedup" /></p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>How can we solve this?</h2>
         
         <ul>
-        <li>How can we leverage Rack in the Rails apps we are building</li>
-        <li>Examples from Rails and personal usage</li>
+        <li>Ruby Module</li>
+        <li>Client Defined UUID</li>
+        <li>Rack Middleware</li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <p><textarea class='code' display='none' mode='ruby'>module Rack&#x000A;  class IdempotentPost&#x000A;    def initialize(app)&#x000A;      @app = app&#x000A;    end&#x000A;&#x000A;    def call(env)&#x000A;      return @app.call(env) unless env['REQUEST_METHOD'] == 'POST'&#x000A;&#x000A;      dup_check = DuplicationChecker.new env&#x000A;&#x000A;      if dup_check.duplicate?&#x000A;        headers, body = dup_check.response&#x000A;        [409, headers, body]&#x000A;      else&#x000A;        status, headers, body = @app.call(env)&#x000A;        dup_check.cache_response(status, headers, body)&#x000A;        [status, headers, body]&#x000A;      end&#x000A;&#x000A;    end&#x000A;&#x000A;    class DuplicationChecker&#x000A;    ...&#x000A;    end&#x000A;  end&#x000A;end</textarea>
+    </p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <p><textarea class='code' display='none' mode='ruby'>class DuplicationChecker&#x000A;  attr_reader :token, :uri, :raw_post_data&#x000A;&#x000A;  def initialize(env)&#x000A;    @token = http_basic_username(env['HTTP_AUTHORIZATION'])&#x000A;    @uri = env['PATH_INFO']&#x000A;    @raw_post_data = env['rack.input'].read&#x000A;  end&#x000A;&#x000A;  def duplicate?&#x000A;    cacheable_request && !!redis.get(hash_key)&#x000A;  end&#x000A;&#x000A;  def cache_response(status, headers, body)&#x000A;    return unless cacheable_request && [200, 201].include? status&#x000A;    CachedPostResponse.create(hash_key: hash_key,&#x000A;                              duplication_key: duplication_key,&#x000A;                              response: [headers, body].to_json)&#x000A;    redis.setex(hash_key, CachedPostResponse::KEY_TTL, true)&#x000A;  end&#x000A;&#x000A;  def response&#x000A;    cached = CachedPostResponse.where(hash_key: hash_key, duplication_key: duplication_key).first&#x000A;    JSON.parse(cached.response)&#x000A;  end&#x000A;&#x000A;  def hash_key; duplication_key.hash.to_s; end&#x000A;&#x000A;  def duplication_key&#x000A;    @duplication_key ||= "#{token}|#{uri}|#{raw_post_data}"&#x000A;  end&#x000A;&#x000A;  def cacheable_request; !raw_post_data.empty? && uri; end&#x000A;end</textarea>
+    </p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Idempotent Post Middleware</h2>
+        
+        <ul>
+        <li>Make no changes to your app</li>
+        <li>Client just needs handle 409 response</li>
+        <li>Can be useful in other part of app
+        
+        <ul>
+        <li>Double submitting forms</li>
+        </ul>
+        </li>
         </ul>
       </div>
       <div class='spacer bottom'></div>
@@ -176,10 +258,14 @@
     <section class='left slide'>
       <div class='spacer top'></div>
       <div class='content'>
-        <h2>rake middleware</h2>
+        <h2>Other ways to use Middleware</h2>
         
-        <p><textarea class='code' display='none' mode='ruby'># rails 4 app with Devise&#x000A;use ActionDispatch::Static&#x000A;use Rack::Lock&#x000A;use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ff9c2f32d48>&#x000A;use Rack::Runtime&#x000A;use Rack::MethodOverride&#x000A;use ActionDispatch::RequestId&#x000A;use Rails::Rack::Logger&#x000A;use ActionDispatch::ShowExceptions&#x000A;use ActionDispatch::DebugExceptions&#x000A;use ActionDispatch::RemoteIp&#x000A;use ActionDispatch::Reloader&#x000A;use ActionDispatch::Callbacks&#x000A;use ActiveRecord::Migration::CheckPending&#x000A;use ActiveRecord::ConnectionAdapters::ConnectionManagement&#x000A;use ActiveRecord::QueryCache&#x000A;use ActionDispatch::Cookies&#x000A;use ActionDispatch::Session::CookieStore&#x000A;use ActionDispatch::Flash&#x000A;use ActionDispatch::ParamsParser&#x000A;use Rack::Head&#x000A;use Rack::ConditionalGet&#x000A;use Rack::ETag&#x000A;use Warden::Manager&#x000A;run Sample::Application.routes</textarea>
-    </p>
+        <ul>
+        <li>Caching</li>
+        <li>Speed up Development &amp; Test Environment</li>
+        <li>App Monitoring</li>
+        <li>Compression</li>
+        </ul>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -190,24 +276,7 @@
         
         <ul>
         <li>The middleware you don't know you use</li>
-        </ul>
-      </div>
-      <div class='spacer bottom'></div>
-    </section>
-    <section class='left slide'>
-      <div class='spacer top'></div>
-      <div class='content'>
-        <h2>Idempotent Post</h2>
-        
-        <ul>
-        <li>Define idempotent</li>
-        <li>Mobile sometimes connected app</li>
-        <li>Payment Form
-        
-        <ul>
-        <li>Rails CRFM</li>
-        </ul>
-        </li>
+        <li><a href="http://tomayko.com/writings/things-caches-do">Rack Cache Blog Post by Ryan Tomayko</a></li>
         </ul>
       </div>
       <div class='spacer bottom'></div>
@@ -233,13 +302,6 @@
         <ul>
         <li>Only server assets if they've changed while in dev</li>
         <li>Source: https://github.com/discourse/discourse/blob/master/lib/middleware/turbo_dev.rb</li>
-        </ul>
-        
-        
-        <h2>Compression</h2>
-        
-        <ul>
-        <li>Gzip compression</li>
         </ul>
       </div>
       <div class='spacer bottom'></div>
@@ -271,6 +333,24 @@
     <section class='left slide'>
       <div class='spacer top'></div>
       <div class='content'>
+        <h2>Compression</h2>
+        
+        <ul>
+        <li>Gzip compression - <a href="https://github.com/rack/rack/blob/master/lib/rack/deflater.rb">Rack::Deflater</a>
+        
+        <ul>
+        <li><a href="http://calebwoods.github.io/http-compression-rails">Slide Deck</a></li>
+        <li><a href="https://gist.github.com/calebwoods/5615260">Testing Gist</a></li>
+        </ul>
+        </li>
+        <li>Inline images - <a href="https://github.com/minad/rack-embed">Rack Embed</a></li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
         <h2>Gems that leverage Middleware</h2>
         
         <ul>
@@ -287,7 +367,6 @@
         <ul>
         <li><a href="https://github.com/rack/rack-contrib/blob/master/lib/rack/contrib/mailexceptions.rb">Email Exceptions</a></li>
         <li><a href="https://github.com/rack/rack/blob/master/lib/rack/directory.rb">Directory Viewer</a></li>
-        <li><a href="https://github.com/minad/rack-embed">Rack Embed</a></li>
         <li><a href="https://github.com/cookrn/chrome_logger">Chrome Logger</a></li>
         </ul>
       </div>
@@ -296,7 +375,14 @@
     <section class='slide'>
       <div class='spacer top'></div>
       <div class='content'>
-        <h1>Further Reading/Watching</h1>
+        <h1>Questions</h1>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h1>Resources</h1>
         
         <ul>
         <li>Jose Valim - <a href="http://www.confreaks.com/videos/2442-railsconf2013-you-ve-got-a-sinatra-on-your-rails">You've a got a Sinatra on your Rails [RailsConf 2013]</a>
@@ -308,6 +394,19 @@
         <li>RailsCast - <a href="http://railscasts.com/episodes/317-rack-app-from-scratch">Rack App from Scratch</a></li>
         <li>Jason Seifer - <a href="http://jasonseifer.com/2009/04/08/32-rack-resources-to-get-you-started">32 Rack Resources to get you Started</a></li>
         <li><a href="https://github.com/rack/rack/wiki/List-of-Middleware">List of Rack Middleware</a></li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h1>Feedback</h1>
+        
+        <ul>
+        <li>Github repo:</li>
+        <li>Email: <a href="mailto:caleb.woods@rolemodelsoftware.com">caleb.woods@rolemodelsoftware.com</a></li>
+        <li>Traingle.rb Mailing List</li>
         </ul>
       </div>
       <div class='spacer bottom'></div>
