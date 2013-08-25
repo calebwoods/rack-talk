@@ -55,7 +55,7 @@
       </div>
       <div class='spacer bottom'></div>
     </section>
-    <section class='left slide'>
+    <section class='left slide snippet'>
       <div class='spacer top'></div>
       <div class='content'>
         <h2>Simplest Example</h2>
@@ -70,7 +70,7 @@
       </div>
       <div class='spacer bottom'></div>
     </section>
-    <section class='left slide'>
+    <section class='left slide snippet'>
       <div class='spacer top'></div>
       <div class='content'>
         <h2>Class Example</h2>
@@ -128,7 +128,7 @@
       </div>
       <div class='spacer bottom'></div>
     </section>
-    <section class='left slide'>
+    <section class='left slide snippet'>
       <div class='spacer top'></div>
       <div class='content'>
         <h2>Rails Router</h2>
@@ -221,18 +221,12 @@
       </div>
       <div class='spacer bottom'></div>
     </section>
-    <section class='slide'>
+    <section class='left slide'>
       <div class='spacer top'></div>
       <div class='content'>
-        <p><textarea class='code' display='none' mode='ruby'>module Rack&#x000A;  class IdempotentPost&#x000A;    def initialize(app)&#x000A;      @app = app&#x000A;    end&#x000A;&#x000A;    def call(env)&#x000A;      return @app.call(env) unless env['REQUEST_METHOD'] == 'POST'&#x000A;&#x000A;      dup_check = DuplicationChecker.new env&#x000A;&#x000A;      if dup_check.duplicate?&#x000A;        headers, body = dup_check.response&#x000A;        [409, headers, body]&#x000A;      else&#x000A;        status, headers, body = @app.call(env)&#x000A;        dup_check.cache_response(status, headers, body)&#x000A;        [status, headers, body]&#x000A;      end&#x000A;&#x000A;    end&#x000A;&#x000A;    class DuplicationChecker&#x000A;    ...&#x000A;    end&#x000A;  end&#x000A;end</textarea>
-    </p>
-      </div>
-      <div class='spacer bottom'></div>
-    </section>
-    <section class='slide'>
-      <div class='spacer top'></div>
-      <div class='content'>
-        <p><textarea class='code' display='none' mode='ruby'>class DuplicationChecker&#x000A;  attr_reader :token, :uri, :raw_post_data&#x000A;&#x000A;  def initialize(env)&#x000A;    @token = http_basic_username(env['HTTP_AUTHORIZATION'])&#x000A;    @uri = env['PATH_INFO']&#x000A;    @raw_post_data = env['rack.input'].read&#x000A;  end&#x000A;&#x000A;  def duplicate?&#x000A;    cacheable_request && !!redis.get(hash_key)&#x000A;  end&#x000A;&#x000A;  def cache_response(status, headers, body)&#x000A;    return unless cacheable_request && [200, 201].include? status&#x000A;    CachedPostResponse.create(hash_key: hash_key,&#x000A;                              duplication_key: duplication_key,&#x000A;                              response: [headers, body].to_json)&#x000A;    redis.setex(hash_key, CachedPostResponse::KEY_TTL, true)&#x000A;  end&#x000A;&#x000A;  def response&#x000A;    cached = CachedPostResponse.where(hash_key: hash_key, duplication_key: duplication_key).first&#x000A;    JSON.parse(cached.response)&#x000A;  end&#x000A;&#x000A;  def hash_key; duplication_key.hash.to_s; end&#x000A;&#x000A;  def duplication_key&#x000A;    @duplication_key ||= "#{token}|#{uri}|#{raw_post_data}"&#x000A;  end&#x000A;&#x000A;  def cacheable_request; !raw_post_data.empty? && uri; end&#x000A;end</textarea>
+        <h2>Idempotent Post Middleware</h2>
+        
+        <p><textarea class='code' display='none' mode='ruby'># examples/idempotent_post.rb&#x000A;&#x000A;module Rack&#x000A;  class IdempotentPost&#x000A;    # ...&#x000A;    def call(env)&#x000A;      return @app.call(env) unless env['REQUEST_METHOD'] == 'POST'&#x000A;&#x000A;      dup_check = DuplicationChecker.new env&#x000A;&#x000A;      if dup_check.duplicate?&#x000A;        headers, body = dup_check.response&#x000A;        [409, headers, body]&#x000A;      else&#x000A;        status, headers, body = @app.call(env)&#x000A;        dup_check.cache_response(status, headers, body)&#x000A;        [status, headers, body]&#x000A;      end&#x000A;    end&#x000A;    # ...&#x000A;  end&#x000A;end</textarea>
     </p>
       </div>
       <div class='spacer bottom'></div>
@@ -251,7 +245,18 @@
         <li>Double submitting forms</li>
         </ul>
         </li>
+        <li>Easy to test</li>
         </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Testing Middleware</h2>
+        
+        <p><textarea class='code' display='none' mode='ruby'># examples/idempotent_post_spec.rb&#x000A;&#x000A;describe Rack::IdempotentPost do&#x000A;  include Rack::Test::Methods&#x000A;  # ...&#x000A;  def inner_app&#x000A;    lambda do |env|&#x000A;      @inner_app_called += 1&#x000A;      [200, {'Content-Type' => 'text/plain'}, ["Call Count #{@inner_app_called}"]]&#x000A;    end&#x000A;  end&#x000A;&#x000A;  before { @inner_app_called = 0 }&#x000A;&#x000A;  it "returns same response for same request" do&#x000A;    post "/posts", { sample_data: 'sample_value' }&#x000A;    first_repsonse = last_response.body&#x000A;&#x000A;    post "/posts", { sample_data: 'sample_value' }&#x000A;    second_response last_response.body&#x000A;&#x000A;    second_response.should eq first_repsonse&#x000A;    @inner_app_called.should eq 1&#x000A;  end&#x000A;end</textarea>
+    </p>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -311,9 +316,20 @@
       <div class='content'>
         <h2>Cucumber Test Login Backdoor</h2>
         
+        <p><textarea class='code' display='none' mode='ruby'># examples/test.rb&#x000A;&#x000A;class DeviseBackDoor&#x000A;  # ...&#x000A;  def call(env)&#x000A;    @env = env&#x000A;    sign_in_through_the_back_door&#x000A;    @app.call(@env)&#x000A;  end&#x000A;&#x000A;  private&#x000A;  def sign_in_through_the_back_door&#x000A;    if user_id = Rack::Utils.parse_query(@env['QUERY_STRING'])['as']&#x000A;      user = User.find(user_id)&#x000A;      @env['warden'].session_serializer.store(user, :user)&#x000A;    end&#x000A;  end&#x000A;end&#x000A;&#x000A;Sample::Application.configure do&#x000A;  # ...&#x000A;  config.middleware.use DeviseBackDoor&#x000A;end</textarea>
+    </p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Cucumber Test Login Backdoor</h2>
+        
         <ul>
-        <li>Show devise sample code devise</li>
-        <li>Source: http://robots.thoughtbot.com/post/37907699673/faster-tests-sign-in-through-the-back-door</li>
+        <li>Replace sign_in step with <code>root_url(as: @user.id)</code></li>
+        <li>Small Suite (64 examples) 4 second speedup (24 > 20)</li>
+        <li><a href="http://robots.thoughtbot.com/post/37907699673/faster-tests-sign-in-through-the-back-door">Thoughtbot Clearance Blog Post</a></li>
         </ul>
       </div>
       <div class='spacer bottom'></div>

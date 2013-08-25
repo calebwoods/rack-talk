@@ -19,3 +19,16 @@
 .deck-container ul ul {
   margin-bottom: -0.6em !important;
 }
+
+.deck-container .slide .deck-codemirror-result,
+.deck-container .slide .CodeMirror {
+  font-family: Menlo, "Bitstream Vera Sans Mono", "DejaVu Sans Mono", Monaco, Consolas, monospace !important;
+  line-height: 1.2;
+  width: 60em;
+  border: 0 !important;
+}
+
+.deck-container .slide.snippet .deck-codemirror-result,
+.deck-container .slide.snippet .CodeMirror {
+  font-size: 1.5rem !important;
+}

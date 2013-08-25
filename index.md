@@ -32,7 +32,7 @@ http://yeahnah.org/files/rack-presentation-oct-07.pdf
 * Take 1 argument the `environment`
 * Returns an Array with 3 values: status, headers, and body
 
-!SLIDE left
+!SLIDE left snippet
 
 ## Simplest Example
 
@@ -45,7 +45,7 @@ run lambda { |env| [200, {}, ['Hello World!']] }
 * Lambda responds to call
 * `body` is an Array because it needs to respond to each
 
-!SLIDE left
+!SLIDE left snippet
 
 ## Class Example
 
@@ -73,8 +73,7 @@ run App.new
 ```ruby
 # examples/3_middleware.ru
 
-class ContentLegthMiddleware
-
+class ContentLengthMiddleware
   def initialize(app)
     @app = app
   end
@@ -84,7 +83,7 @@ class ContentLegthMiddleware
   end
 end
 
-use ContentLegthMiddleware
+use ContentLengthMiddleware
 run lambda { |env| [200, {}, ['Hello World!']] }
 ```
 !SLIDE left
@@ -125,7 +124,7 @@ end
 run lambda { |env| [200, {}, ["PATH_INFO: #{env['PATH_INFO']}"]] }
 ```
 
-!SLIDE left
+!SLIDE left snippet
 
 ## Rails Router
 
@@ -240,15 +239,16 @@ http://www.websequencediagrams.com/cgi-bin/cdraw?lz=aVBhZC0-UmFpbHM6IFBPU1QgUmVx
 * Client Defined UUID
 * Rack Middleware
 
-!SLIDE
+!SLIDE left
+
+## Idempotent Post Middleware
 
 ```ruby
+# examples/idempotent_post.rb
+
 module Rack
   class IdempotentPost
-    def initialize(app)
-      @app = app
-    end
-
+    # ...
     def call(env)
       return @app.call(env) unless env['REQUEST_METHOD'] == 'POST'
 
@@ -262,55 +262,11 @@ module Rack
         dup_check.cache_response(status, headers, body)
         [status, headers, body]
       end
-
     end
-
-    class DuplicationChecker
-    ...
-    end
+    # ...
   end
 end
 ```
-
-!SLIDE
-
-```ruby
-class DuplicationChecker
-  attr_reader :token, :uri, :raw_post_data
-
-  def initialize(env)
-    @token = http_basic_username(env['HTTP_AUTHORIZATION'])
-    @uri = env['PATH_INFO']
-    @raw_post_data = env['rack.input'].read
-  end
-
-  def duplicate?
-    cacheable_request && !!redis.get(hash_key)
-  end
-
-  def cache_response(status, headers, body)
-    return unless cacheable_request && [200, 201].include? status
-    CachedPostResponse.create(hash_key: hash_key,
-                              duplication_key: duplication_key,
-                              response: [headers, body].to_json)
-    redis.setex(hash_key, CachedPostResponse::KEY_TTL, true)
-  end
-
-  def response
-    cached = CachedPostResponse.where(hash_key: hash_key, duplication_key: duplication_key).first
-    JSON.parse(cached.response)
-  end
-
-  def hash_key; duplication_key.hash.to_s; end
-
-  def duplication_key
-    @duplication_key ||= "#{token}|#{uri}|#{raw_post_data}"
-  end
-
-  def cacheable_request; !raw_post_data.empty? && uri; end
-end
-```
-
 !SLIDE left
 
 ## Idempotent Post Middleware
@@ -319,6 +275,39 @@ end
 * Client just needs handle 409 response
 * Can be useful in other part of app
   * Double submitting forms
+* Easy to test
+
+!SLIDE left
+
+## Testing Middleware
+
+```ruby
+# examples/idempotent_post_spec.rb
+
+describe Rack::IdempotentPost do
+  include Rack::Test::Methods
+  # ...
+  def inner_app
+    lambda do |env|
+      @inner_app_called += 1
+      [200, {'Content-Type' => 'text/plain'}, ["Call Count #{@inner_app_called}"]]
+    end
+  end
+
+  before { @inner_app_called = 0 }
+
+  it "returns same response for same request" do
+    post "/posts", { sample_data: 'sample_value' }
+    first_repsonse = last_response.body
+
+    post "/posts", { sample_data: 'sample_value' }
+    second_response last_response.body
+
+    second_response.should eq first_repsonse
+    @inner_app_called.should eq 1
+  end
+end
+```
 
 !SLIDE left
 
@@ -355,8 +344,39 @@ end
 
 ## Cucumber Test Login Backdoor
 
-* Show devise sample code devise
-* Source: http://robots.thoughtbot.com/post/37907699673/faster-tests-sign-in-through-the-back-door
+```ruby
+# examples/test.rb
+
+class DeviseBackDoor
+  # ...
+  def call(env)
+    @env = env
+    sign_in_through_the_back_door
+    @app.call(@env)
+  end
+
+  private
+  def sign_in_through_the_back_door
+    if user_id = Rack::Utils.parse_query(@env['QUERY_STRING'])['as']
+      user = User.find(user_id)
+      @env['warden'].session_serializer.store(user, :user)
+    end
+  end
+end
+
+Sample::Application.configure do
+  # ...
+  config.middleware.use DeviseBackDoor
+end
+```
+
+!SLIDE left
+
+## Cucumber Test Login Backdoor
+
+* Replace sign_in step with `root_url(as: @user.id)`
+* Small Suite (64 examples) 4 second speedup (24 > 20)
+* [Thoughtbot Clearance Blog Post](http://robots.thoughtbot.com/post/37907699673/faster-tests-sign-in-through-the-back-door)
 
 !SLIDE left
 

@@ -1,4 +1,4 @@
-class ContentLegthMiddleware
+class ContentLengthMiddleware
 
   def initialize(app)
     @app = app
@@ -14,5 +14,5 @@ class ContentLegthMiddleware
 
 end
 
-use ContentLegthMiddleware
+use ContentLengthMiddleware
 run lambda { |env| [200, {}, ['Hello World!']] }
