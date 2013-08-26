@@ -41,37 +41,44 @@ http://yeahnah.org/files/rack-presentation-oct-07.pdf
 
 run lambda { |env| [200, {}, ['Hello World!']] }
 ```
+<div class="run-example">
+  <span>curl -i localhost:5000</span>
+  <button class="clear">Clear</button>
+  <button class="run">Run</button>
+  <div class="result"></div>
+</div>
 
 * Lambda responds to call
 * `body` is an Array because it needs to respond to each
 
-<div class="run-example">
-  curl -i localhost:5000
-  <span data-url="http://localhost:5000" data-result="#result1">Run</span>
-  <div id="result1"></div>
-</div>
+!SLIDE left
 
-!SLIDE left snippet
-
-## Class Example
+## Command Runner
 
 ```ruby
 # examples/2_class.ru
 
-class App
+class CommandRunner
 
   def call(env)
-    [200, {}, ['Hello World!']]
+    @env = env
+    result = %x[#{command}] if command
+    if result && $?.success?
+      [200, headers, [result]]
+    else
+      [500, headers, ['Could not run command']]
+    end
   end
-
+  # ...
 end
 
-run App.new
+run CommandRunner.new
 ```
 <div class="run-example">
-  curl -i localhost:5100
-  <span data-url="http://localhost:5100" data-result="#result2">Run</span>
-  <div id="result2"></div>
+  <span>date</span>
+  <button class="clear">Clear</button>
+  <button class="run">Run</button>
+  <div class="result"></div>
 </div>
 
 !SLIDE left
@@ -97,11 +104,11 @@ end
 use ContentLengthMiddleware
 run lambda { |env| [200, {}, ['Hello World!']] }
 ```
-
 <div class="run-example">
-  curl -i localhost:5200
-  <span data-url="http://localhost:5200" data-result="#result3">Run</span>
-  <div id="result3"></div>
+  <span>curl -i localhost:5200</span>
+  <button class="clear">Clear</button>
+  <button class="run">Run</button>
+  <div class="result"></div>
 </div>
 
 !SLIDE left
@@ -117,9 +124,17 @@ run lambda { |env| [200, {}, ['Hello World!']] }
 use Rack::Lint
 run lambda { |env| [204, {'Content-Length' => '12'}, ['Hello World!']] }
 ```
-
 <div class="run-example">
-  curl -I localhost:5300
+  <span>curl -I localhost:5300</span>
+  <button class="clear">Clear</button>
+  <button class="run">Run</button>
+  <div class="result"></div>
+</div>
+<div class="run-example">
+  <span>curl localhost:5300</span>
+  <button class="clear">Clear</button>
+  <button class="run">Run</button>
+  <div class="result"></div>
 </div>
 
 !SLIDE left
@@ -145,12 +160,29 @@ end
 
 run lambda { |env| [200, {}, ["PATH_INFO: #{env['PATH_INFO']}"]] }
 ```
-
 <div class="run-example">
   curl -i localhost:5400
+  <button class="run" data-command="curl -i localhost:5400">Run</button>
+  <button class="clear">Clear</button>
+  <div class="result"></div>
+</div>
+<div class="run-example">
   curl -i localhost:5400/app_1
+  <button class="run" data-command="curl -i localhost:5400/app_1">Run</button>
+  <button class="clear">Clear</button>
+  <div class="result"></div>
+</div>
+<div class="run-example">
   curl -i localhost:5400/app_2
+  <button class="run" data-command="curl -i localhost:5400/app_2">Run</button>
+  <button class="clear">Clear</button>
+  <div class="result"></div>
+</div>
+<div class="run-example">
   curl -i localhost:5400/app_2/nested
+  <button class="run" data-command="curl -i localhost:5400/app_2/nested">Run</button>
+  <button class="clear">Clear</button>
+  <div class="result"></div>
 </div>
 
 !SLIDE left snippet

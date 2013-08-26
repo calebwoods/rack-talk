@@ -1,12 +1,3 @@
-require 'rack/cors'
-
-use Rack::Cors do
-  allow do
-    origins '*'
-    resource '*', headers: :any, methods: :get
-  end
-end
-
 class ContentLengthMiddleware
 
   def initialize(app)

@@ -63,32 +63,34 @@
         <p><textarea class='code' display='none' mode='ruby'># examples/1_simple.ru&#x000A;&#x000A;run lambda { |env| [200, {}, ['Hello World!']] }</textarea>
     </p>
         
+        <div class="run-example">
+          <span>curl -i localhost:5000</span>
+          <button class="clear">Clear</button>
+          <button class="run">Run</button>
+          <div class="result"></div>
+        </div>
+        
+        
         <ul>
         <li>Lambda responds to call</li>
         <li><code>body</code> is an Array because it needs to respond to each</li>
         </ul>
-        
-        
-        <div class="run-example">
-          curl -i localhost:5000
-          <span data-url="http://localhost:5000" data-result="#result1">Run</span>
-          <div id="result1"></div>
-        </div>
       </div>
       <div class='spacer bottom'></div>
     </section>
-    <section class='left slide snippet'>
+    <section class='left slide'>
       <div class='spacer top'></div>
       <div class='content'>
-        <h2>Class Example</h2>
+        <h2>Command Runner</h2>
         
-        <p><textarea class='code' display='none' mode='ruby'># examples/2_class.ru&#x000A;&#x000A;class App&#x000A;&#x000A;  def call(env)&#x000A;    [200, {}, ['Hello World!']]&#x000A;  end&#x000A;&#x000A;end&#x000A;&#x000A;run App.new</textarea>
+        <p><textarea class='code' display='none' mode='ruby'># examples/2_class.ru&#x000A;&#x000A;class CommandRunner&#x000A;&#x000A;  def call(env)&#x000A;    @env = env&#x000A;    result = %x[#{command}] if command&#x000A;    if result && $?.success?&#x000A;      [200, headers, [result]]&#x000A;    else&#x000A;      [500, headers, ['Could not run command']]&#x000A;    end&#x000A;  end&#x000A;  # ...&#x000A;end&#x000A;&#x000A;run CommandRunner.new</textarea>
     </p>
         
         <div class="run-example">
-          curl -i localhost:5100
-          <span data-url="http://localhost:5100" data-result="#result2">Run</span>
-          <div id="result2"></div>
+          <span>date</span>
+          <button class="clear">Clear</button>
+          <button class="run">Run</button>
+          <div class="result"></div>
         </div>
       </div>
       <div class='spacer bottom'></div>
@@ -108,9 +110,10 @@
     </p>
         
         <div class="run-example">
-          curl -i localhost:5200
-          <span data-url="http://localhost:5200" data-result="#result3">Run</span>
-          <div id="result3"></div>
+          <span>curl -i localhost:5200</span>
+          <button class="clear">Clear</button>
+          <button class="run">Run</button>
+          <div class="result"></div>
         </div>
       </div>
       <div class='spacer bottom'></div>
@@ -130,7 +133,18 @@
     </p>
         
         <div class="run-example">
-          curl -I localhost:5300
+          <span>curl -I localhost:5300</span>
+          <button class="clear">Clear</button>
+          <button class="run">Run</button>
+          <div class="result"></div>
+        </div>
+        
+        
+        <div class="run-example">
+          <span>curl localhost:5300</span>
+          <button class="clear">Clear</button>
+          <button class="run">Run</button>
+          <div class="result"></div>
         </div>
       </div>
       <div class='spacer bottom'></div>
@@ -151,9 +165,33 @@
         
         <div class="run-example">
           curl -i localhost:5400
+          <button class="run" data-command="curl -i localhost:5400">Run</button>
+          <button class="clear">Clear</button>
+          <div class="result"></div>
+        </div>
+        
+        
+        <div class="run-example">
           curl -i localhost:5400/app_1
+          <button class="run" data-command="curl -i localhost:5400/app_1">Run</button>
+          <button class="clear">Clear</button>
+          <div class="result"></div>
+        </div>
+        
+        
+        <div class="run-example">
           curl -i localhost:5400/app_2
+          <button class="run" data-command="curl -i localhost:5400/app_2">Run</button>
+          <button class="clear">Clear</button>
+          <div class="result"></div>
+        </div>
+        
+        
+        <div class="run-example">
           curl -i localhost:5400/app_2/nested
+          <button class="run" data-command="curl -i localhost:5400/app_2/nested">Run</button>
+          <button class="clear">Clear</button>
+          <div class="result"></div>
         </div>
       </div>
       <div class='spacer bottom'></div>
