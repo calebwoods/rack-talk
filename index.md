@@ -474,6 +474,61 @@ end
 
 ## Compression
 
+```ruby
+# examples/7_compression.ru
+
+use Rack::Deflater
+run lambda { |env|
+  content = <<-TEXT
+    Need some longish content to compress.
+    If content is too short compressing add overhead because of headers.
+  TEXT
+  [200, {}, [content]]
+}
+```
+<div class="run-example">
+  <span>curl -i localhost:5600 | wc -c</span>
+  <button class="clear">Clear</button>
+  <button class="run">Run</button>
+  <div class="result"></div>
+</div>
+<div class="run-example">
+  <span>curl -i -H 'Accept-Encoding: gzip,deflate' localhost:5600 | wc -c</span>
+  <button class="clear">Clear</button>
+  <button class="run">Run</button>
+  <div class="result"></div>
+</div>
+
+!SLIDE left
+
+## Compression
+
+```ruby
+# examples/8_compression_long.ru
+
+# ~1MB of content
+use Rack::Deflater
+run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
+```
+<div class="run-example">
+  <span>curl -i localhost:5700 | wc -c</span>
+  <button class="clear">Clear</button>
+  <button class="run">Run</button>
+  <div class="result"></div>
+</div>
+<div class="run-example">
+  <span>curl -i -H 'Accept-Encoding: gzip,deflate' localhost:5700 | wc -c</span>
+  <button class="clear">Clear</button>
+  <button class="run">Run</button>
+  <div class="result"></div>
+</div>
+
+`1060.5kb` of data becomes `9.7kb`
+
+!SLIDE left
+
+## Compression
+
 * Gzip compression - [Rack::Deflater](https://github.com/rack/rack/blob/master/lib/rack/deflater.rb)
   * [Slide Deck](http://calebwoods.github.io/http-compression-rails)
   * [Testing Gist](https://gist.github.com/calebwoods/5615260)

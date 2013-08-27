@@ -4,3 +4,5 @@ example_3: rackup examples/3_middleware.ru -p $PORT
 example_4: rackup examples/4_lint.ru -p $PORT
 example_5: rackup examples/5_map.ru -p $PORT
 example_6: rackup examples/6_rack_cache.ru -p $PORT
+example_7: rackup examples/7_compression.ru -p $PORT
+example_8: rackup examples/8_compression_long.ru -p $PORT

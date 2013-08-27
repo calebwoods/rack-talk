@@ -414,6 +414,59 @@
       <div class='content'>
         <h2>Compression</h2>
         
+        <p><textarea class='code' display='none' mode='ruby'># examples/7_compression.ru&#x000A;&#x000A;use Rack::Deflater&#x000A;run lambda { |env|&#x000A;  content = <<-TEXT&#x000A;    Need some longish content to compress.&#x000A;    If content is too short compressing add overhead because of headers.&#x000A;  TEXT&#x000A;  [200, {}, [content]]&#x000A;}</textarea>
+    </p>
+        
+        <div class="run-example">
+          <span>curl -i localhost:5600 | wc -c</span>
+          <button class="clear">Clear</button>
+          <button class="run">Run</button>
+          <div class="result"></div>
+        </div>
+        
+        
+        <div class="run-example">
+          <span>curl -i -H 'Accept-Encoding: gzip,deflate' localhost:5600 | wc -c</span>
+          <button class="clear">Clear</button>
+          <button class="run">Run</button>
+          <div class="result"></div>
+        </div>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Compression</h2>
+        
+        <p><textarea class='code' display='none' mode='ruby'># examples/8_compression_long.ru&#x000A;&#x000A;# ~1MB of content&#x000A;use Rack::Deflater&#x000A;run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }</textarea>
+    </p>
+        
+        <div class="run-example">
+          <span>curl -i localhost:5700 | wc -c</span>
+          <button class="clear">Clear</button>
+          <button class="run">Run</button>
+          <div class="result"></div>
+        </div>
+        
+        
+        <div class="run-example">
+          <span>curl -i -H 'Accept-Encoding: gzip,deflate' localhost:5700 | wc -c</span>
+          <button class="clear">Clear</button>
+          <button class="run">Run</button>
+          <div class="result"></div>
+        </div>
+        
+        
+        <p><code>1060.5kb</code> of data becomes <code>9.7kb</code></p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Compression</h2>
+        
         <ul>
         <li>Gzip compression - <a href="https://github.com/rack/rack/blob/master/lib/rack/deflater.rb">Rack::Deflater</a>
         
