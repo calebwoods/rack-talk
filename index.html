@@ -138,61 +138,6 @@
           <button class="run">Run</button>
           <div class="result"></div>
         </div>
-        
-        
-        <div class="run-example">
-          <span>curl localhost:5300</span>
-          <button class="clear">Clear</button>
-          <button class="run">Run</button>
-          <div class="result"></div>
-        </div>
-      </div>
-      <div class='spacer bottom'></div>
-    </section>
-    <section class='left slide'>
-      <div class='spacer top'></div>
-      <div class='content'>
-        <h2><a href="http://rack.rubyforge.org/doc/Rack/URLMap.html">Rack::URLMap</a></h2>
-        
-        <ul>
-        <li>Allows you construct a hash mapping of urls to Rack apps</li>
-        <li>Works by changing the SCRIPT_NAME and PATH_INFO variables when dispatching</li>
-        </ul>
-        
-        
-        <p><textarea class='code' display='none' mode='ruby'># examples/5_map.ru&#x000A;&#x000A;map "/app_1" do&#x000A;  run lambda { |env| [200, {}, ['Hello from app_1!']] }&#x000A;end&#x000A;&#x000A;map "/app_2" do&#x000A;  map "/nested" do&#x000A;    run lambda { |env| [200, {}, ["SCRIPT_NAME: #{env['SCRIPT_NAME']}\nPATH_INFO: #{env['PATH_INFO']}"]] }&#x000A;  end&#x000A;  run lambda { |env| [200, {}, ['Hello from app_2!']] }&#x000A;end&#x000A;&#x000A;run lambda { |env| [200, {}, ["PATH_INFO: #{env['PATH_INFO']}"]] }</textarea>
-    </p>
-        
-        <div class="run-example">
-          curl -i localhost:5400
-          <button class="run" data-command="curl -i localhost:5400">Run</button>
-          <button class="clear">Clear</button>
-          <div class="result"></div>
-        </div>
-        
-        
-        <div class="run-example">
-          curl -i localhost:5400/app_1
-          <button class="run" data-command="curl -i localhost:5400/app_1">Run</button>
-          <button class="clear">Clear</button>
-          <div class="result"></div>
-        </div>
-        
-        
-        <div class="run-example">
-          curl -i localhost:5400/app_2
-          <button class="run" data-command="curl -i localhost:5400/app_2">Run</button>
-          <button class="clear">Clear</button>
-          <div class="result"></div>
-        </div>
-        
-        
-        <div class="run-example">
-          curl -i localhost:5400/app_2/nested
-          <button class="run" data-command="curl -i localhost:5400/app_2/nested">Run</button>
-          <button class="clear">Clear</button>
-          <div class="result"></div>
-        </div>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -347,10 +292,60 @@
       <div class='content'>
         <h2>Rack Cache</h2>
         
+        <p><textarea class='code' display='none' mode='ruby'>use Rack::Cache&#x000A;run lambda { |env|&#x000A;  headers = { 'Cache-Control' => 'max-age=5, public' }&#x000A;  [200, headers, ["Hello at: #{Time.now}"]]&#x000A;}</textarea>
+    </p>
+        
+        <div class="run-example">
+          <span>curl -i localhost:5500</span>
+          <button class="clear">Clear</button>
+          <button class="run">Run</button>
+          <div class="result"></div>
+        </div>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='diagram slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>1st Request to Cache</h2>
+        
+        <p><img src="images/cache_first.png" alt="Cache Second Request" /></p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='diagram slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>2nd Request to Cache</h2>
+        
+        <p><img src="images/cache_second.png" alt="Cache Second Request" /></p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Rack Cache in Rails</h2>
+        
+        <p><textarea class='code' display='none' mode='ruby'>def index&#x000A;  @posts = Post.by_date&#x000A;  fresh_when(@posts.maximum(:updated_at), public: true)&#x000A;end&#x000A;&#x000A;def show&#x000A;  @post = Post.find(params[:id])&#x000A;&#x000A;  # if stale?(@post)&#x000A;  if stale?(etag: @post, last_modified: @post.updated_at, public: true)&#x000A;    respond_to do |format|&#x000A;      format.html # show.html.erb&#x000A;      format.json { render json: @post }&#x000A;    end&#x000A;  end&#x000A;end&#x000A;&#x000A;def archive&#x000A;  @post = Post.archived&#x000A;  expires_in 3.days, public: true&#x000A;end</textarea>
+    </p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Rack Cache</h2>
+        
         <ul>
-        <li>The middleware you don't know you use</li>
         <li><a href="http://tomayko.com/writings/things-caches-do">Rack Cache Blog Post by Ryan Tomayko</a></li>
+        <li><a href="https://devcenter.heroku.com/articles/http-caching-ruby-rails">Heroku Dev Http Caching in Rails</a></li>
+        <li>Useful on pages that are same for every user</li>
         </ul>
+        
+        
+        <p><textarea class='code' display='none' mode='ruby'>def index&#x000A;  @posts = Post.by_date&#x000A;&#x000A;  respond_to do |format|&#x000A;    format.html&#x000A;    format.xml { fresh_when(@posts.maximum(:updated_at), public: true) }&#x000A;  end&#x000A;end</textarea>
+    </p>
       </div>
       <div class='spacer bottom'></div>
     </section>

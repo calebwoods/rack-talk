@@ -130,60 +130,6 @@ run lambda { |env| [204, {'Content-Length' => '12'}, ['Hello World!']] }
   <button class="run">Run</button>
   <div class="result"></div>
 </div>
-<div class="run-example">
-  <span>curl localhost:5300</span>
-  <button class="clear">Clear</button>
-  <button class="run">Run</button>
-  <div class="result"></div>
-</div>
-
-!SLIDE left
-
-## [Rack::URLMap](http://rack.rubyforge.org/doc/Rack/URLMap.html)
-
-* Allows you construct a hash mapping of urls to Rack apps
-* Works by changing the SCRIPT_NAME and PATH_INFO variables when dispatching
-
-```ruby
-# examples/5_map.ru
-
-map "/app_1" do
-  run lambda { |env| [200, {}, ['Hello from app_1!']] }
-end
-
-map "/app_2" do
-  map "/nested" do
-    run lambda { |env| [200, {}, ["SCRIPT_NAME: #{env['SCRIPT_NAME']}\nPATH_INFO: #{env['PATH_INFO']}"]] }
-  end
-  run lambda { |env| [200, {}, ['Hello from app_2!']] }
-end
-
-run lambda { |env| [200, {}, ["PATH_INFO: #{env['PATH_INFO']}"]] }
-```
-<div class="run-example">
-  curl -i localhost:5400
-  <button class="run" data-command="curl -i localhost:5400">Run</button>
-  <button class="clear">Clear</button>
-  <div class="result"></div>
-</div>
-<div class="run-example">
-  curl -i localhost:5400/app_1
-  <button class="run" data-command="curl -i localhost:5400/app_1">Run</button>
-  <button class="clear">Clear</button>
-  <div class="result"></div>
-</div>
-<div class="run-example">
-  curl -i localhost:5400/app_2
-  <button class="run" data-command="curl -i localhost:5400/app_2">Run</button>
-  <button class="clear">Clear</button>
-  <div class="result"></div>
-</div>
-<div class="run-example">
-  curl -i localhost:5400/app_2/nested
-  <button class="run" data-command="curl -i localhost:5400/app_2/nested">Run</button>
-  <button class="clear">Clear</button>
-  <div class="result"></div>
-</div>
 
 !SLIDE left snippet
 
@@ -383,8 +329,86 @@ end
 
 ## Rack Cache
 
-* The middleware you don't know you use
+```ruby
+use Rack::Cache
+run lambda { |env|
+  headers = { 'Cache-Control' => 'max-age=5, public' }
+  [200, headers, ["Hello at: #{Time.now}"]]
+}
+```
+<div class="run-example">
+  <span>curl -i localhost:5500</span>
+  <button class="clear">Clear</button>
+  <button class="run">Run</button>
+  <div class="result"></div>
+</div>
+
+!SLIDE diagram
+
+## 1st Request to Cache
+
+![Cache Second Request](images/cache_first.png)
+
+!NOTES
+
+http://www.websequencediagrams.com/cgi-bin/cdraw?lz=Q2xpZW50LT5DYWNoZTogR0VUIC8KAAgFLT5CYWNrZW5kAA4Ibm90ZSByaWdodCBvZiAAFAlDb21wdXRlIHJlc3BvbnNlCgAwBwBLCTIwMCBPS1xuAFAGQ29udHJvbDogbWF4LWFnZT01AGcIAIEFBgANIw&s=napkin
+
+!SLIDE diagram
+
+## 2nd Request to Cache
+
+![Cache Second Request](images/cache_second.png)
+
+!NOTES
+
+http://www.websequencediagrams.com/cgi-bin/cdraw?lz=Q2xpZW50LT5DYWNoZTogR0VUIC8KAAgFLS0-PkJhY2tlbmQ6IERvZXMgbm90IGhhcHBlbgAbBwAuCGNhY2hlIGlzIGZyZXNoABQJAFYFOiAyMDAgT0tcbkFnZTogMVxuAFgGQ29udHJvbDogbWF4LWFnZT01Cg&s=napkin
+
+!SLIDE left
+
+## Rack Cache in Rails
+
+```ruby
+def index
+  @posts = Post.by_date
+  fresh_when(@posts.maximum(:updated_at), public: true)
+end
+
+def show
+  @post = Post.find(params[:id])
+
+  # if stale?(@post)
+  if stale?(etag: @post, last_modified: @post.updated_at, public: true)
+    respond_to do |format|
+      format.html # show.html.erb
+      format.json { render json: @post }
+    end
+  end
+end
+
+def archive
+  @post = Post.archived
+  expires_in 3.days, public: true
+end
+```
+
+!SLIDE left
+
+## Rack Cache
+
 * [Rack Cache Blog Post by Ryan Tomayko](http://tomayko.com/writings/things-caches-do)
+* [Heroku Dev Http Caching in Rails](https://devcenter.heroku.com/articles/http-caching-ruby-rails)
+* Useful on pages that are same for every user
+
+```ruby
+def index
+  @posts = Post.by_date
+
+  respond_to do |format|
+    format.html
+    format.xml { fresh_when(@posts.maximum(:updated_at), public: true) }
+  end
+end
+```
 
 !SLIDE left
 
