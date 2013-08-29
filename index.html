@@ -36,8 +36,24 @@
       <div class='content'>
         <h2>What is Rack</h2>
         
+        <p>Rack provides a minimal interface between webservers supporting Ruby and Ruby frameworks.</p>
+        
+        <p>Source: <a href="http://rack.github.io">http://rack.github.io</a></p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>What does that mean?</h2>
+        
+        <p>Unified interface for all Ruby webservers to implement.</p>
+        
         <ul>
-        <li>Project website: Rack provides a minimal interface between webservers supporting Ruby and Ruby frameworks.</li>
+        <li><a href="http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick.html">WEBrick</a></li>
+        <li><a href="https://github.com/defunkt/unicorn">Unicorn</a></li>
+        <li><a href="http://code.macournoyer.com/thin/">Thin</a></li>
+        <li><a href="http://puma.io/">Puma</a></li>
         </ul>
       </div>
       <div class='spacer bottom'></div>
@@ -48,7 +64,7 @@
         <h2><a href="http://rack.rubyforge.org/doc/SPEC.html">Rack Spec</a></h2>
         
         <ul>
-        <li>Ruby class that responds to <code>call</code></li>
+        <li>Ruby object that responds to <code>call</code></li>
         <li>Take 1 argument the <code>environment</code></li>
         <li>Returns an Array with 3 values: status, headers, and body</li>
         </ul>
@@ -69,12 +85,6 @@
           <button class="run">Run</button>
           <div class="result"></div>
         </div>
-        
-        
-        <ul>
-        <li>Lambda responds to call</li>
-        <li><code>body</code> is an Array because it needs to respond to each</li>
-        </ul>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -101,10 +111,16 @@
         <h2>Middleware</h2>
         
         <ul>
-        <li>Allows you compose a stack of Rack applications</li>
-        <li><a href="http://rack.rubyforge.org/doc/Rack/Builder.html">Rack::Build</a> gives us a small DSL to construct our apps</li>
+        <li>Allows composition of a stack of Rack applications</li>
+        <li><a href="http://rack.rubyforge.org/doc/Rack/Builder.html">Rack::Build</a> provides a small DSL to this</li>
         </ul>
-        
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Middlware</h2>
         
         <p><textarea class='code' display='none' mode='ruby'># examples/3_middleware.ru&#x000A;&#x000A;class ContentLengthMiddleware&#x000A;  def initialize(app)&#x000A;    @app = app&#x000A;  end&#x000A;&#x000A;  def call(env)&#x000A;    # do work&#x000A;  end&#x000A;end&#x000A;&#x000A;use ContentLengthMiddleware&#x000A;run lambda { |env| [200, {}, ['Hello World!']] }</textarea>
     </p>
@@ -150,9 +166,6 @@
         
         <p><textarea class='code' display='none' mode='ruby'># This standard route&#x000A;get "/", to: "posts#index"&#x000A;&#x000A;# maps to&#x000A;get "/", to: PostsController.action(:index)</textarea>
     </p>
-        
-        <p><textarea class='code' display='none' mode='ruby'>mount SintraApp, at: "/sinatra"</textarea>
-    </p>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -160,8 +173,6 @@
       <div class='spacer top'></div>
       <div class='content'>
         <h2>Rails Router</h2>
-        
-        <h3>Match vs Mount</h3>
         
         <ul>
         <li>Match (get, post, ..) - matches on full path</li>

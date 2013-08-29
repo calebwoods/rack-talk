@@ -16,19 +16,31 @@ Caleb Woods especially enjoys solving business problems with technology in a lea
 
 ## What is Rack
 
-* Project website: Rack provides a minimal interface between webservers supporting Ruby and Ruby frameworks.
+Rack provides a minimal interface between webservers supporting Ruby and Ruby frameworks.
+
+Source: [http://rack.github.io](http://rack.github.io)
 
 !NOTES
 
-http://rack.github.io/
 Rack::Lint
 http://yeahnah.org/files/rack-presentation-oct-07.pdf
 
 !SLIDE left
 
+## What does that mean?
+
+Unified interface for all Ruby webservers to implement.
+
+* [WEBrick](http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick.html)
+* [Unicorn](https://github.com/defunkt/unicorn)
+* [Thin](http://code.macournoyer.com/thin/)
+* [Puma](http://puma.io/)
+
+!SLIDE left
+
 ## [Rack Spec](http://rack.rubyforge.org/doc/SPEC.html)
 
-* Ruby class that responds to `call`
+* Ruby object that responds to `call`
 * Take 1 argument the `environment`
 * Returns an Array with 3 values: status, headers, and body
 
@@ -47,6 +59,8 @@ run lambda { |env| [200, {}, ['Hello World!']] }
   <button class="run">Run</button>
   <div class="result"></div>
 </div>
+
+!NOTES
 
 * Lambda responds to call
 * `body` is an Array because it needs to respond to each
@@ -85,8 +99,12 @@ run CommandRunner.new
 
 ## Middleware
 
-* Allows you compose a stack of Rack applications
-* [Rack::Build](http://rack.rubyforge.org/doc/Rack/Builder.html) gives us a small DSL to construct our apps
+* Allows composition of a stack of Rack applications
+* [Rack::Build](http://rack.rubyforge.org/doc/Rack/Builder.html) provides a small DSL to this
+
+!SLIDE left
+
+## Middlware
 
 ```ruby
 # examples/3_middleware.ru
@@ -145,15 +163,9 @@ get "/", to: "posts#index"
 get "/", to: PostsController.action(:index)
 ```
 
-```ruby
-mount SintraApp, at: "/sinatra"
-```
-
 !SLIDE left
 
 ## Rails Router
-
-### Match vs Mount
 
 * Match (get, post, ..) - matches on full path
 * Mount (SintraApp) - matches on the path prefix
