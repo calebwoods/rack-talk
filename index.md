@@ -8,6 +8,22 @@ We'll then look at a number of real world examples of how Rack and Rack Middlewa
 
 Caleb Woods especially enjoys solving business problems with technology in a lean approach.  At RoleModel Software he works with clients solving problems with Ruby and Service Oriented Architecture.  Caleb is also passionate about mentorship and is always looking for ways to teach and learn from other developers.
 
+
+-- Run through notes --
+
+How to start - booting etc
+Where to put middleware in a Rails app
+Diagram of Rack stack with middleware
+Default stack, Sinatra stack, Rails Stack
+Where is the next request called in the middleware
+Timing as an example to show details
+Ephisize should be can used in any Rack app
+Types of status, headers, body
+Example of environment
+Put examples in a directory
+
+Start with stack then getting into how Rack works and build from there
+
 !SLIDE
 
 # Rack
@@ -104,7 +120,7 @@ run CommandRunner.new
 
 !SLIDE left
 
-## Middlware
+## Middleware
 
 ```ruby
 # examples/3_middleware.ru
