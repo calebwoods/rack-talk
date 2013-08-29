@@ -131,6 +131,38 @@ run lambda { |env| [200, {}, ['Hello World!']] }
 
 !SLIDE left
 
+## rake middleware
+
+```ruby
+# rails 4 app with Devise
+use ActionDispatch::Static
+use Rack::Lock
+use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ff9c2f32d48>
+use Rack::Runtime
+use Rack::MethodOverride
+use ActionDispatch::RequestId
+use Rails::Rack::Logger
+use ActionDispatch::ShowExceptions
+use ActionDispatch::DebugExceptions
+use ActionDispatch::RemoteIp
+use ActionDispatch::Reloader
+use ActionDispatch::Callbacks
+use ActiveRecord::Migration::CheckPending
+use ActiveRecord::ConnectionAdapters::ConnectionManagement
+use ActiveRecord::QueryCache
+use ActionDispatch::Cookies
+use ActionDispatch::Session::CookieStore
+use ActionDispatch::Flash
+use ActionDispatch::ParamsParser
+use Rack::Head
+use Rack::ConditionalGet
+use Rack::ETag
+use Warden::Manager
+run Sample::Application.routes
+```
+
+!SLIDE left
+
 ## [Rack::Lint](http://rack.rubyforge.org/doc/Rack/Lint.html)
 
 * Validates your application/middleware against the [Rack Spec](http://rack.rubyforge.org/doc/SPEC.html)
@@ -180,38 +212,6 @@ mount SintraApp, at: "/sinatra"
 # other uses
 mount Sidekiq, at: "/sidekiq"
 mount Grape::API, at: "/api"
-```
-
-!SLIDE left
-
-## rake middleware
-
-```ruby
-# rails 4 app with Devise
-use ActionDispatch::Static
-use Rack::Lock
-use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ff9c2f32d48>
-use Rack::Runtime
-use Rack::MethodOverride
-use ActionDispatch::RequestId
-use Rails::Rack::Logger
-use ActionDispatch::ShowExceptions
-use ActionDispatch::DebugExceptions
-use ActionDispatch::RemoteIp
-use ActionDispatch::Reloader
-use ActionDispatch::Callbacks
-use ActiveRecord::Migration::CheckPending
-use ActiveRecord::ConnectionAdapters::ConnectionManagement
-use ActiveRecord::QueryCache
-use ActionDispatch::Cookies
-use ActionDispatch::Session::CookieStore
-use ActionDispatch::Flash
-use ActionDispatch::ParamsParser
-use Rack::Head
-use Rack::ConditionalGet
-use Rack::ETag
-use Warden::Manager
-run Sample::Application.routes
 ```
 
 !SLIDE
@@ -333,27 +333,16 @@ end
 ## Other ways to use Middleware
 
 * Caching
-* Speed up Development & Test Environment
-* App Monitoring
+* Speed up Test Environment
 * Compression
 
 !SLIDE left
 
 ## Rack Cache
 
-```ruby
-use Rack::Cache
-run lambda { |env|
-  headers = { 'Cache-Control' => 'max-age=5, public' }
-  [200, headers, ["Hello at: #{Time.now}"]]
-}
-```
-<div class="run-example">
-  <span>curl -i localhost:5500</span>
-  <button class="clear">Clear</button>
-  <button class="run">Run</button>
-  <div class="result"></div>
-</div>
+* HTTP caching for Rack apps
+* 100% Ruby
+* Disk, memcached, and heap memory storage backends
 
 !SLIDE diagram
 
@@ -374,6 +363,24 @@ http://www.websequencediagrams.com/cgi-bin/cdraw?lz=Q2xpZW50LT5DYWNoZTogR0VUIC8K
 !NOTES
 
 http://www.websequencediagrams.com/cgi-bin/cdraw?lz=Q2xpZW50LT5DYWNoZTogR0VUIC8KAAgFLS0-PkJhY2tlbmQ6IERvZXMgbm90IGhhcHBlbgAbBwAuCGNhY2hlIGlzIGZyZXNoABQJAFYFOiAyMDAgT0tcbkFnZTogMVxuAFgGQ29udHJvbDogbWF4LWFnZT01Cg&s=napkin
+
+!SLIDE left
+
+## Rack Cache Example
+
+```ruby
+use Rack::Cache
+run lambda { |env|
+  headers = { 'Cache-Control' => 'max-age=5, public' }
+  [200, headers, ["Hello at: #{Time.now}"]]
+}
+```
+<div class="run-example">
+  <span>curl -i localhost:5500</span>
+  <button class="clear">Clear</button>
+  <button class="run">Run</button>
+  <div class="result"></div>
+</div>
 
 !SLIDE left
 
@@ -424,21 +431,6 @@ end
 
 !SLIDE left
 
-## App Status
-
-* [Pinglish](https://github.com/jbarnette/pinglish)
-* https://github.com/TheClimateCorporation/unicorn-metrics
-* More about app status than 200 OK
-
-!SLIDE left
-
-## Turbo Dev
-
-* Only server assets if they've changed while in dev
-* Source: https://github.com/discourse/discourse/blob/master/lib/middleware/turbo_dev.rb
-
-!SLIDE left
-
 ## Cucumber Test Login Backdoor
 
 ```ruby
@@ -473,9 +465,9 @@ end
 
 * Replace sign_in step with `root_url(as: @user.id)`
 * Small Suite (64 examples) 4 second speedup (24 > 20)
-* [Thoughtbot Clearance Blog Post](http://robots.thoughtbot.com/post/37907699673/faster-tests-sign-in-through-the-back-door)
+* Source: [Thoughtbot Clearance Blog Post](http://robots.thoughtbot.com/post/37907699673/faster-tests-sign-in-through-the-back-door)
 
-!SLIDE left
+!NOTES
 
 ## External Request when Testing
 
@@ -539,23 +531,24 @@ run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
 
 !SLIDE left
 
-## Compression
+## Compression Resources
 
-* Gzip compression - [Rack::Deflater](https://github.com/rack/rack/blob/master/lib/rack/deflater.rb)
-  * [Slide Deck](http://calebwoods.github.io/http-compression-rails)
-  * [Testing Gist](https://gist.github.com/calebwoods/5615260)
+* [Rack::Deflater](https://github.com/rack/rack/blob/master/lib/rack/deflater.rb)
+* [Slide Deck](http://calebwoods.github.io/http-compression-rails)
+* [Testing Gist](https://gist.github.com/calebwoods/5615260)
+
+!NOTES
 * Inline images - [Rack Embed](https://github.com/minad/rack-embed)
 
-!SLIDE left
+## App Status
+
+* [Pinglish](https://github.com/jbarnette/pinglish)
+* https://github.com/TheClimateCorporation/unicorn-metrics
+* More about app status than 200 OK
 
 ## Gems that leverage Middleware
 
 * [Better Errors](https://github.com/charliesome/better_errors)
-
-!SLIDE left
-
-## Other ideas
-
 * [Email Exceptions](https://github.com/rack/rack-contrib/blob/master/lib/rack/contrib/mailexceptions.rb)
 * [Directory Viewer](https://github.com/rack/rack/blob/master/lib/rack/directory.rb)
 * [Chrome Logger](https://github.com/cookrn/chrome_logger)
@@ -572,12 +565,12 @@ run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
   * Great look how Rails uses Rack internally
 * RailsCast - [Rack App from Scratch](http://railscasts.com/episodes/317-rack-app-from-scratch)
 * Jason Seifer - [32 Rack Resources to get you Started](http://jasonseifer.com/2009/04/08/32-rack-resources-to-get-you-started)
-* [List of Rack Middleware](https://github.com/rack/rack/wiki/List-of-Middleware)
+* Rack Wiki - [List of Rack Middleware](https://github.com/rack/rack/wiki/List-of-Middleware)
 
 !SLIDE left
 
 # Feedback
 
-* Github repo:
+* Github repo: --coming soon--
 * Email: [caleb.woods@rolemodelsoftware.com](mailto:caleb.woods@rolemodelsoftware.com)
 * Traingle.rb Mailing List

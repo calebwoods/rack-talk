@@ -137,6 +137,16 @@
     <section class='left slide'>
       <div class='spacer top'></div>
       <div class='content'>
+        <h2>rake middleware</h2>
+        
+        <p><textarea class='code' display='none' mode='ruby'># rails 4 app with Devise&#x000A;use ActionDispatch::Static&#x000A;use Rack::Lock&#x000A;use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ff9c2f32d48>&#x000A;use Rack::Runtime&#x000A;use Rack::MethodOverride&#x000A;use ActionDispatch::RequestId&#x000A;use Rails::Rack::Logger&#x000A;use ActionDispatch::ShowExceptions&#x000A;use ActionDispatch::DebugExceptions&#x000A;use ActionDispatch::RemoteIp&#x000A;use ActionDispatch::Reloader&#x000A;use ActionDispatch::Callbacks&#x000A;use ActiveRecord::Migration::CheckPending&#x000A;use ActiveRecord::ConnectionAdapters::ConnectionManagement&#x000A;use ActiveRecord::QueryCache&#x000A;use ActionDispatch::Cookies&#x000A;use ActionDispatch::Session::CookieStore&#x000A;use ActionDispatch::Flash&#x000A;use ActionDispatch::ParamsParser&#x000A;use Rack::Head&#x000A;use Rack::ConditionalGet&#x000A;use Rack::ETag&#x000A;use Warden::Manager&#x000A;run Sample::Application.routes</textarea>
+    </p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
         <h2><a href="http://rack.rubyforge.org/doc/Rack/Lint.html">Rack::Lint</a></h2>
         
         <ul>
@@ -181,16 +191,6 @@
         
         
         <p><textarea class='code' display='none' mode='ruby'># REQUEST: GET /sinatra/sub_route&#x000A;&#x000A;get "/sinatra/specific", to: "posts#index"&#x000A;&#x000A;mount SintraApp, at: "/sinatra"&#x000A;&#x000A;# other uses&#x000A;mount Sidekiq, at: "/sidekiq"&#x000A;mount Grape::API, at: "/api"</textarea>
-    </p>
-      </div>
-      <div class='spacer bottom'></div>
-    </section>
-    <section class='left slide'>
-      <div class='spacer top'></div>
-      <div class='content'>
-        <h2>rake middleware</h2>
-        
-        <p><textarea class='code' display='none' mode='ruby'># rails 4 app with Devise&#x000A;use ActionDispatch::Static&#x000A;use Rack::Lock&#x000A;use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ff9c2f32d48>&#x000A;use Rack::Runtime&#x000A;use Rack::MethodOverride&#x000A;use ActionDispatch::RequestId&#x000A;use Rails::Rack::Logger&#x000A;use ActionDispatch::ShowExceptions&#x000A;use ActionDispatch::DebugExceptions&#x000A;use ActionDispatch::RemoteIp&#x000A;use ActionDispatch::Reloader&#x000A;use ActionDispatch::Callbacks&#x000A;use ActiveRecord::Migration::CheckPending&#x000A;use ActiveRecord::ConnectionAdapters::ConnectionManagement&#x000A;use ActiveRecord::QueryCache&#x000A;use ActionDispatch::Cookies&#x000A;use ActionDispatch::Session::CookieStore&#x000A;use ActionDispatch::Flash&#x000A;use ActionDispatch::ParamsParser&#x000A;use Rack::Head&#x000A;use Rack::ConditionalGet&#x000A;use Rack::ETag&#x000A;use Warden::Manager&#x000A;run Sample::Application.routes</textarea>
     </p>
       </div>
       <div class='spacer bottom'></div>
@@ -291,8 +291,7 @@
         
         <ul>
         <li>Caching</li>
-        <li>Speed up Development &amp; Test Environment</li>
-        <li>App Monitoring</li>
+        <li>Speed up Test Environment</li>
         <li>Compression</li>
         </ul>
       </div>
@@ -303,15 +302,11 @@
       <div class='content'>
         <h2>Rack Cache</h2>
         
-        <p><textarea class='code' display='none' mode='ruby'>use Rack::Cache&#x000A;run lambda { |env|&#x000A;  headers = { 'Cache-Control' => 'max-age=5, public' }&#x000A;  [200, headers, ["Hello at: #{Time.now}"]]&#x000A;}</textarea>
-    </p>
-        
-        <div class="run-example">
-          <span>curl -i localhost:5500</span>
-          <button class="clear">Clear</button>
-          <button class="run">Run</button>
-          <div class="result"></div>
-        </div>
+        <ul>
+        <li>HTTP caching for Rack apps</li>
+        <li>100% Ruby</li>
+        <li>Disk, memcached, and heap memory storage backends</li>
+        </ul>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -330,6 +325,23 @@
         <h2>2nd Request to Cache</h2>
         
         <p><img src="images/cache_second.png" alt="Cache Second Request" /></p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Rack Cache Example</h2>
+        
+        <p><textarea class='code' display='none' mode='ruby'>use Rack::Cache&#x000A;run lambda { |env|&#x000A;  headers = { 'Cache-Control' => 'max-age=5, public' }&#x000A;  [200, headers, ["Hello at: #{Time.now}"]]&#x000A;}</textarea>
+    </p>
+        
+        <div class="run-example">
+          <span>curl -i localhost:5500</span>
+          <button class="clear">Clear</button>
+          <button class="run">Run</button>
+          <div class="result"></div>
+        </div>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -363,31 +375,6 @@
     <section class='left slide'>
       <div class='spacer top'></div>
       <div class='content'>
-        <h2>App Status</h2>
-        
-        <ul>
-        <li><a href="https://github.com/jbarnette/pinglish">Pinglish</a></li>
-        <li>https://github.com/TheClimateCorporation/unicorn-metrics</li>
-        <li>More about app status than 200 OK</li>
-        </ul>
-      </div>
-      <div class='spacer bottom'></div>
-    </section>
-    <section class='left slide'>
-      <div class='spacer top'></div>
-      <div class='content'>
-        <h2>Turbo Dev</h2>
-        
-        <ul>
-        <li>Only server assets if they've changed while in dev</li>
-        <li>Source: https://github.com/discourse/discourse/blob/master/lib/middleware/turbo_dev.rb</li>
-        </ul>
-      </div>
-      <div class='spacer bottom'></div>
-    </section>
-    <section class='left slide'>
-      <div class='spacer top'></div>
-      <div class='content'>
         <h2>Cucumber Test Login Backdoor</h2>
         
         <p><textarea class='code' display='none' mode='ruby'># examples/test.rb&#x000A;&#x000A;class DeviseBackDoor&#x000A;  # ...&#x000A;  def call(env)&#x000A;    @env = env&#x000A;    sign_in_through_the_back_door&#x000A;    @app.call(@env)&#x000A;  end&#x000A;&#x000A;  private&#x000A;  def sign_in_through_the_back_door&#x000A;    if user_id = Rack::Utils.parse_query(@env['QUERY_STRING'])['as']&#x000A;      user = User.find(user_id)&#x000A;      @env['warden'].session_serializer.store(user, :user)&#x000A;    end&#x000A;  end&#x000A;end&#x000A;&#x000A;Sample::Application.configure do&#x000A;  # ...&#x000A;  config.middleware.use DeviseBackDoor&#x000A;end</textarea>
@@ -403,19 +390,7 @@
         <ul>
         <li>Replace sign_in step with <code>root_url(as: @user.id)</code></li>
         <li>Small Suite (64 examples) 4 second speedup (24 > 20)</li>
-        <li><a href="http://robots.thoughtbot.com/post/37907699673/faster-tests-sign-in-through-the-back-door">Thoughtbot Clearance Blog Post</a></li>
-        </ul>
-      </div>
-      <div class='spacer bottom'></div>
-    </section>
-    <section class='left slide'>
-      <div class='spacer top'></div>
-      <div class='content'>
-        <h2>External Request when Testing</h2>
-        
-        <ul>
-        <li>SpreedlyCore middleware</li>
-        <li>Allows the use of VCR</li>
+        <li>Source: <a href="http://robots.thoughtbot.com/post/37907699673/faster-tests-sign-in-through-the-back-door">Thoughtbot Clearance Blog Post</a></li>
         </ul>
       </div>
       <div class='spacer bottom'></div>
@@ -476,41 +451,12 @@
     <section class='left slide'>
       <div class='spacer top'></div>
       <div class='content'>
-        <h2>Compression</h2>
+        <h2>Compression Resources</h2>
         
         <ul>
-        <li>Gzip compression - <a href="https://github.com/rack/rack/blob/master/lib/rack/deflater.rb">Rack::Deflater</a>
-        
-        <ul>
+        <li><a href="https://github.com/rack/rack/blob/master/lib/rack/deflater.rb">Rack::Deflater</a></li>
         <li><a href="http://calebwoods.github.io/http-compression-rails">Slide Deck</a></li>
         <li><a href="https://gist.github.com/calebwoods/5615260">Testing Gist</a></li>
-        </ul>
-        </li>
-        <li>Inline images - <a href="https://github.com/minad/rack-embed">Rack Embed</a></li>
-        </ul>
-      </div>
-      <div class='spacer bottom'></div>
-    </section>
-    <section class='left slide'>
-      <div class='spacer top'></div>
-      <div class='content'>
-        <h2>Gems that leverage Middleware</h2>
-        
-        <ul>
-        <li><a href="https://github.com/charliesome/better_errors">Better Errors</a></li>
-        </ul>
-      </div>
-      <div class='spacer bottom'></div>
-    </section>
-    <section class='left slide'>
-      <div class='spacer top'></div>
-      <div class='content'>
-        <h2>Other ideas</h2>
-        
-        <ul>
-        <li><a href="https://github.com/rack/rack-contrib/blob/master/lib/rack/contrib/mailexceptions.rb">Email Exceptions</a></li>
-        <li><a href="https://github.com/rack/rack/blob/master/lib/rack/directory.rb">Directory Viewer</a></li>
-        <li><a href="https://github.com/cookrn/chrome_logger">Chrome Logger</a></li>
         </ul>
       </div>
       <div class='spacer bottom'></div>
@@ -536,7 +482,7 @@
         </li>
         <li>RailsCast - <a href="http://railscasts.com/episodes/317-rack-app-from-scratch">Rack App from Scratch</a></li>
         <li>Jason Seifer - <a href="http://jasonseifer.com/2009/04/08/32-rack-resources-to-get-you-started">32 Rack Resources to get you Started</a></li>
-        <li><a href="https://github.com/rack/rack/wiki/List-of-Middleware">List of Rack Middleware</a></li>
+        <li>Rack Wiki - <a href="https://github.com/rack/rack/wiki/List-of-Middleware">List of Rack Middleware</a></li>
         </ul>
       </div>
       <div class='spacer bottom'></div>
@@ -547,7 +493,7 @@
         <h1>Feedback</h1>
         
         <ul>
-        <li>Github repo:</li>
+        <li>Github repo: --coming soon--</li>
         <li>Email: <a href="mailto:caleb.woods@rolemodelsoftware.com">caleb.woods@rolemodelsoftware.com</a></li>
         <li>Traingle.rb Mailing List</li>
         </ul>
