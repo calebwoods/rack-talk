@@ -279,7 +279,7 @@
       <div class='content'>
         <h2>Testing Middleware</h2>
         
-        <p><textarea class='code' display='none' mode='ruby'># examples/idempotent_post_spec.rb&#x000A;&#x000A;describe Rack::IdempotentPost do&#x000A;  include Rack::Test::Methods&#x000A;  # ...&#x000A;  def inner_app&#x000A;    lambda do |env|&#x000A;      @inner_app_called += 1&#x000A;      [200, {'Content-Type' => 'text/plain'}, ["Call Count #{@inner_app_called}"]]&#x000A;    end&#x000A;  end&#x000A;&#x000A;  before { @inner_app_called = 0 }&#x000A;&#x000A;  it "returns same response for same request" do&#x000A;    post "/posts", { sample_data: 'sample_value' }&#x000A;    first_repsonse = last_response.body&#x000A;&#x000A;    post "/posts", { sample_data: 'sample_value' }&#x000A;    second_response last_response.body&#x000A;&#x000A;    second_response.should eq first_repsonse&#x000A;    @inner_app_called.should eq 1&#x000A;  end&#x000A;end</textarea>
+        <p><textarea class='code' display='none' mode='ruby'># examples/idempotent_post_spec.rb&#x000A;&#x000A;describe Rack::IdempotentPost do&#x000A;  include Rack::Test::Methods&#x000A;&#x000A;  def app&#x000A;    Rack::IdempotentPost.new(inner_app)&#x000A;  end&#x000A;  # ...&#x000A;  it "returns same response for same request" do&#x000A;    post "/posts", { sample_data: 'sample_value' }&#x000A;    first_repsonse = last_response.body&#x000A;&#x000A;    post "/posts", { sample_data: 'sample_value' }&#x000A;    second_response last_response.body&#x000A;&#x000A;    second_response.should eq first_repsonse&#x000A;    @inner_app_called.should eq 1&#x000A;  end&#x000A;end</textarea>
     </p>
       </div>
       <div class='spacer bottom'></div>

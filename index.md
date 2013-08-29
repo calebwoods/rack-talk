@@ -305,16 +305,11 @@ end
 
 describe Rack::IdempotentPost do
   include Rack::Test::Methods
-  # ...
-  def inner_app
-    lambda do |env|
-      @inner_app_called += 1
-      [200, {'Content-Type' => 'text/plain'}, ["Call Count #{@inner_app_called}"]]
-    end
+
+  def app
+    Rack::IdempotentPost.new(inner_app)
   end
-
-  before { @inner_app_called = 0 }
-
+  # ...
   it "returns same response for same request" do
     post "/posts", { sample_data: 'sample_value' }
     first_repsonse = last_response.body
