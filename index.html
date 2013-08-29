@@ -377,6 +377,18 @@
       <div class='content'>
         <h2>Cucumber Test Login Backdoor</h2>
         
+        <ul>
+        <li>What step is run most often in your cucumber suite?</li>
+        <li>Do we need to test the login form for every example?</li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Cucumber Test Login Backdoor</h2>
+        
         <p><textarea class='code' display='none' mode='ruby'># examples/test.rb&#x000A;&#x000A;class DeviseBackDoor&#x000A;  # ...&#x000A;  def call(env)&#x000A;    @env = env&#x000A;    sign_in_through_the_back_door&#x000A;    @app.call(@env)&#x000A;  end&#x000A;&#x000A;  private&#x000A;  def sign_in_through_the_back_door&#x000A;    if user_id = Rack::Utils.parse_query(@env['QUERY_STRING'])['as']&#x000A;      user = User.find(user_id)&#x000A;      @env['warden'].session_serializer.store(user, :user)&#x000A;    end&#x000A;  end&#x000A;end&#x000A;&#x000A;Sample::Application.configure do&#x000A;  # ...&#x000A;  config.middleware.use DeviseBackDoor&#x000A;end</textarea>
     </p>
       </div>
@@ -391,6 +403,18 @@
         <li>Replace sign_in step with <code>root_url(as: @user.id)</code></li>
         <li>Small Suite (64 examples) 4 second speedup (24 > 20)</li>
         <li>Source: <a href="http://robots.thoughtbot.com/post/37907699673/faster-tests-sign-in-through-the-back-door">Thoughtbot Clearance Blog Post</a></li>
+        </ul>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Compression</h2>
+        
+        <ul>
+        <li>Slowest part of HTTP request is transport</li>
+        <li>Modern computers and phones can easily handle decompressing</li>
         </ul>
       </div>
       <div class='spacer bottom'></div>

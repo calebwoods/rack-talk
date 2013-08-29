@@ -428,6 +428,13 @@ end
 
 ## Cucumber Test Login Backdoor
 
+* What step is run most often in your cucumber suite?
+* Do we need to test the login form for every example?
+
+!SLIDE left
+
+## Cucumber Test Login Backdoor
+
 ```ruby
 # examples/test.rb
 
@@ -468,6 +475,13 @@ end
 
 * SpreedlyCore middleware
 * Allows the use of VCR
+
+!SLIDE left
+
+## Compression
+
+* Slowest part of HTTP request is transport
+* Modern computers and phones can easily handle decompressing
 
 !SLIDE left
 
