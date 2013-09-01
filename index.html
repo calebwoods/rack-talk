@@ -65,7 +65,7 @@
         
         <ul>
         <li>Ruby object that responds to <code>call</code></li>
-        <li>Take 1 argument the <code>environment</code></li>
+        <li>Take 1 argument the <code>environment</code> [Hash]</li>
         <li>Returns an Array with 3 values: status, headers, and body
         
         <ul>
@@ -75,13 +75,6 @@
         </ul>
         </li>
         </ul>
-      </div>
-      <div class='spacer bottom'></div>
-    </section>
-    <section class='left slide'>
-      <div class='spacer top'></div>
-      <div class='content'>
-        <h2>What does this look like</h2>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -105,24 +98,26 @@
       </div>
       <div class='spacer bottom'></div>
     </section>
-    <section class='left slide'>
+    <section class='diagram slide'>
       <div class='spacer top'></div>
       <div class='content'>
-        <h2>Command Runner</h2>
+        <h2>Simplest Example</h2>
         
-        <p><textarea class='code' display='none' mode='ruby'># examples/2/config.ru&#x000A;&#x000A;class CommandRunner&#x000A;&#x000A;  def call(env)&#x000A;    @env = env&#x000A;    result = %x[#{command}] if command&#x000A;    if result && $?.success?&#x000A;      [200, headers, [result]]&#x000A;    else&#x000A;      [500, headers, ['Could not run command']]&#x000A;    end&#x000A;  end&#x000A;  # ...&#x000A;end&#x000A;&#x000A;run CommandRunner.new</textarea>
-    </p>
-        
-        <div class="run-example">
-          <span>date</span>
-          <button class="clear">Clear</button>
-          <button class="run">Run</button>
-          <div class="result"></div>
-        </div>
+        <h1>TODO diagram of simple example</h1>
       </div>
       <div class='spacer bottom'></div>
     </section>
     <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Environment</h2>
+        
+        <p><textarea class='code' display='none' mode='ruby'>{ "SERVER_SOFTWARE" => "thin 1.5.1 codename Straight Razor",&#x000A;  "SERVER_NAME" => "localhost",&#x000A;  "rack.input" => #<Rack::Lint::InputWrapper:0x007ff37cf1aa28 @input=#<StringIO:0x007ff37ceca730>>,&#x000A;  "rack.version" => [1, 0],&#x000A;  "rack.errors" => #<Rack::Lint::ErrorWrapper:0x007ff37cf1a3e8 @error=#<IO:<STDERR>>>,&#x000A;  "rack.multithread" => false,&#x000A;  "rack.multiprocess" => false,&#x000A;  "rack.run_once" => false,&#x000A;  "REQUEST_METHOD" => "GET",&#x000A;  "REQUEST_PATH" => "/",&#x000A;  "PATH_INFO" => "/",&#x000A;  "REQUEST_URI" => "/",&#x000A;  "QUERY_STRING" => "",&#x000A;  "SERVER_PORT" => "5000",&#x000A;  "SERVER_PROTOCOL" => "HTTP/1.1",&#x000A;  "SCRIPT_NAME" => "",&#x000A;  "HTTP_VERSION" => "HTTP/1.1",&#x000A;  "HTTP_HOST" => "localhost:5000",&#x000A;  "HTTP_CONNECTION" => "keep-alive",&#x000A;  "HTTP_CACHE_CONTROL" => "max-age=0",&#x000A;  "HTTP_ACCEPT" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",&#x000A;  "HTTP_USER_AGENT" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1612.2 Safari/537.36",&#x000A;  "HTTP_ACCEPT_ENCODING" => "gzip,deflate,sdch",&#x000A;  "HTTP_ACCEPT_LANGUAGE" => "en-US,en;q=0.8",&#x000A;  # ...</textarea>
+    </p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide snippet'>
       <div class='spacer top'></div>
       <div class='content'>
         <h2>Middleware</h2>
@@ -130,7 +125,12 @@
         <ul>
         <li>Allows composition of a stack of Rack applications</li>
         <li><a href="http://rack.rubyforge.org/doc/Rack/Builder.html">Rack::Build</a> provides a small DSL to this</li>
+        <li>Same spec, but adds an initializer that takes next app in stack</li>
         </ul>
+        
+        
+        <p><textarea class='code' display='none' mode='ruby'># middleware are declared as a class not an instance&#x000A;&#x000A;use FirstMiddleware&#x000A;use SecondMiddleware&#x000A;run Application.new</textarea>
+    </p>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -139,7 +139,7 @@
       <div class='content'>
         <h2>Middleware</h2>
         
-        <p><textarea class='code' display='none' mode='ruby'># examples/3/config.ru&#x000A;&#x000A;class ContentLengthMiddleware&#x000A;  def initialize(app)&#x000A;    @app = app&#x000A;  end&#x000A;&#x000A;  def call(env)&#x000A;    # do work&#x000A;  end&#x000A;end&#x000A;&#x000A;use ContentLengthMiddleware&#x000A;run lambda { |env| [200, {}, ['Hello World!']] }</textarea>
+        <p><textarea class='code' display='none' mode='ruby'># examples/3/config.ru&#x000A;&#x000A;class ContentLengthMiddleware&#x000A;  def initialize(app)&#x000A;    @app = app&#x000A;  end&#x000A;&#x000A;  def call(env)&#x000A;    status, headers, body = @app.call(env)&#x000A;    headers['Content-Length'] = body.inject(0) do |l, p|&#x000A;      l + Rack::Utils.bytesize(p)&#x000A;    end.to_s&#x000A;    [status, headers, body]&#x000A;  end&#x000A;end&#x000A;&#x000A;use ContentLengthMiddleware&#x000A;run lambda { |env| [200, {}, ['Hello World!']] }</textarea>
     </p>
         
         <div class="run-example">
@@ -151,12 +151,41 @@
       </div>
       <div class='spacer bottom'></div>
     </section>
+    <section class='diagram slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Middleware</h2>
+        
+        <h1>TODO diagram of middleware call stack</h1>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
     <section class='left slide'>
       <div class='spacer top'></div>
       <div class='content'>
         <h2>$ rake middleware</h2>
         
         <p><textarea class='code' display='none' mode='ruby'># rails 4 app with Devise&#x000A;use ActionDispatch::Static&#x000A;use Rack::Lock&#x000A;use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ff9c2f32d48>&#x000A;use Rack::Runtime&#x000A;use Rack::MethodOverride&#x000A;use ActionDispatch::RequestId&#x000A;use Rails::Rack::Logger&#x000A;use ActionDispatch::ShowExceptions&#x000A;use ActionDispatch::DebugExceptions&#x000A;use ActionDispatch::RemoteIp&#x000A;use ActionDispatch::Reloader&#x000A;use ActionDispatch::Callbacks&#x000A;use ActiveRecord::Migration::CheckPending&#x000A;use ActiveRecord::ConnectionAdapters::ConnectionManagement&#x000A;use ActiveRecord::QueryCache&#x000A;use ActionDispatch::Cookies&#x000A;use ActionDispatch::Session::CookieStore&#x000A;use ActionDispatch::Flash&#x000A;use ActionDispatch::ParamsParser&#x000A;use Rack::Head&#x000A;use Rack::ConditionalGet&#x000A;use Rack::ETag&#x000A;use Warden::Manager&#x000A;run Sample::Application.routes</textarea>
+    </p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide snippet'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Adding Middleware - config.ru</h2>
+        
+        <p><textarea class='code' display='none' mode='ruby'>require 'server'&#x000A;require 'middleware/custom_middleware'&#x000A;&#x000A;use CustomMiddleware&#x000A;run Server.new</textarea>
+    </p>
+      </div>
+      <div class='spacer bottom'></div>
+    </section>
+    <section class='left slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h2>Adding Middleware - Rails</h2>
+        
+        <p><textarea class='code' display='none' mode='ruby'># config/application.rb&#x000A;&#x000A;require 'middleware/custom_middleware' # pulling from lib/middleware&#x000A;# ...&#x000A;&#x000A;module Sample&#x000A;  class Application < Rails::Application&#x000A;    # ...&#x000A;    config.middleware.use CustomMiddleware # last on stack&#x000A;    config.middleware.insert 0, CustomMiddleware # first on stack&#x000A;    config.middleware.insert_before ActionDispatch::Head, CustomMiddleware&#x000A;    config.middleware.insert_after ActionDispatch::Head, CustomMiddleware&#x000A;    config.middleware.swap ActionDispatch::Flash, CustomMiddleware&#x000A;    config.middleware.delete ActionDispatch::Flash&#x000A;  end&#x000A;end&#x000A;&#x000A;# config/envronments/development.rb&#x000A;&#x000A;Sample::Application.configure do&#x000A;  config.middleware.use CustomMiddleware&#x000A;end</textarea>
     </p>
       </div>
       <div class='spacer bottom'></div>

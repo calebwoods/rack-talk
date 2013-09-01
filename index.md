@@ -64,15 +64,11 @@ Unified interface for all Ruby webservers to implement.
 ## [Rack Spec](http://rack.rubyforge.org/doc/SPEC.html)
 
 * Ruby object that responds to `call`
-* Take 1 argument the `environment`
+* Take 1 argument the `environment` [Hash]
 * Returns an Array with 3 values: status, headers, and body
   * status [Integer] - 1xx, 2xx, 3xx, 4xx, 5xx
   * headers [Hash] - { 'Content-Type' => 'text/plain' }
   * body [Enumerable] - responds to `each`
-
-!SLIDE left
-
-## What does this look like
 
 !SLIDE left snippet
 
@@ -101,42 +97,59 @@ $ rackup -p 5000
 * Lambda responds to call
 * `body` is an Array because it needs to respond to each
 
+!SLIDE diagram
+
+## Simplest Example
+
+# TODO diagram of simple example
+
 !SLIDE left
 
-## Command Runner
+## Environment
 
 ```ruby
-# examples/2/config.ru
-
-class CommandRunner
-
-  def call(env)
-    @env = env
-    result = %x[#{command}] if command
-    if result && $?.success?
-      [200, headers, [result]]
-    else
-      [500, headers, ['Could not run command']]
-    end
-  end
+{ "SERVER_SOFTWARE" => "thin 1.5.1 codename Straight Razor",
+  "SERVER_NAME" => "localhost",
+  "rack.input" => #<Rack::Lint::InputWrapper:0x007ff37cf1aa28 @input=#<StringIO:0x007ff37ceca730>>,
+  "rack.version" => [1, 0],
+  "rack.errors" => #<Rack::Lint::ErrorWrapper:0x007ff37cf1a3e8 @error=#<IO:<STDERR>>>,
+  "rack.multithread" => false,
+  "rack.multiprocess" => false,
+  "rack.run_once" => false,
+  "REQUEST_METHOD" => "GET",
+  "REQUEST_PATH" => "/",
+  "PATH_INFO" => "/",
+  "REQUEST_URI" => "/",
+  "QUERY_STRING" => "",
+  "SERVER_PORT" => "5000",
+  "SERVER_PROTOCOL" => "HTTP/1.1",
+  "SCRIPT_NAME" => "",
+  "HTTP_VERSION" => "HTTP/1.1",
+  "HTTP_HOST" => "localhost:5000",
+  "HTTP_CONNECTION" => "keep-alive",
+  "HTTP_CACHE_CONTROL" => "max-age=0",
+  "HTTP_ACCEPT" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+  "HTTP_USER_AGENT" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1612.2 Safari/537.36",
+  "HTTP_ACCEPT_ENCODING" => "gzip,deflate,sdch",
+  "HTTP_ACCEPT_LANGUAGE" => "en-US,en;q=0.8",
   # ...
-end
-
-run CommandRunner.new
 ```
-<div class="run-example">
-  <span>date</span>
-  <button class="clear">Clear</button>
-  <button class="run">Run</button>
-  <div class="result"></div>
-</div>
 
-!SLIDE left
+!SLIDE left snippet
 
 ## Middleware
 
 * Allows composition of a stack of Rack applications
 * [Rack::Build](http://rack.rubyforge.org/doc/Rack/Builder.html) provides a small DSL to this
+* Same spec, but adds an initializer that takes next app in stack
+
+```ruby
+# middleware are declared as a class not an instance
+
+use FirstMiddleware
+use SecondMiddleware
+run Application.new
+```
 
 !SLIDE left
 
@@ -151,7 +164,11 @@ class ContentLengthMiddleware
   end
 
   def call(env)
-    # do work
+    status, headers, body = @app.call(env)
+    headers['Content-Length'] = body.inject(0) do |l, p|
+      l + Rack::Utils.bytesize(p)
+    end.to_s
+    [status, headers, body]
   end
 end
 
@@ -164,6 +181,12 @@ run lambda { |env| [200, {}, ['Hello World!']] }
   <button class="run">Run</button>
   <div class="result"></div>
 </div>
+
+!SLIDE diagram
+
+## Middleware
+
+# TODO diagram of middleware call stack
 
 !SLIDE left
 
@@ -195,6 +218,47 @@ use Rack::ConditionalGet
 use Rack::ETag
 use Warden::Manager
 run Sample::Application.routes
+```
+
+!SLIDE left snippet
+
+## Adding Middleware - config.ru
+
+```ruby
+require 'server'
+require 'middleware/custom_middleware'
+
+use CustomMiddleware
+run Server.new
+```
+
+!SLIDE left
+
+## Adding Middleware - Rails
+
+```ruby
+# config/application.rb
+
+require 'middleware/custom_middleware' # pulling from lib/middleware
+# ...
+
+module Sample
+  class Application < Rails::Application
+    # ...
+    config.middleware.use CustomMiddleware # last on stack
+    config.middleware.insert 0, CustomMiddleware # first on stack
+    config.middleware.insert_before ActionDispatch::Head, CustomMiddleware
+    config.middleware.insert_after ActionDispatch::Head, CustomMiddleware
+    config.middleware.swap ActionDispatch::Flash, CustomMiddleware
+    config.middleware.delete ActionDispatch::Flash
+  end
+end
+
+# config/envronments/development.rb
+
+Sample::Application.configure do
+  config.middleware.use CustomMiddleware
+end
 ```
 
 !SLIDE left snippet
