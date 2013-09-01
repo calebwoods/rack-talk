@@ -1,7 +1,5 @@
-require 'rack/cache'
-
-use Rack::Cache
+use Rack::Deflater
 run lambda { |env|
-  headers = { 'Cache-Control' => 'max-age=5, public' }
-  [200, headers, ["Hello at: #{Time.now}"]]
+  content = File.read(File.expand_path('../lots_o_content.txt', __FILE__))
+  [200, {}, [content]]
 }

@@ -12,6 +12,7 @@ Caleb Woods especially enjoys solving business problems with technology in a lea
 -- Run through notes --
 
 How to start - booting etc
+Diagram of Rack app
 Where to put middleware in a Rails app
 Diagram of Rack stack with middleware
 Default stack, Sinatra stack, Rails Stack
@@ -23,6 +24,12 @@ Example of environment
 Put examples in a directory
 
 Start with stack then getting into how Rack works and build from there
+
+example of basic auth
+
+use Rack::Auth::Basic do |username, password|
+  username == 'admin' && password == 'secret'
+end
 
 !SLIDE
 
@@ -59,16 +66,29 @@ Unified interface for all Ruby webservers to implement.
 * Ruby object that responds to `call`
 * Take 1 argument the `environment`
 * Returns an Array with 3 values: status, headers, and body
+  * status [Integer] - 1xx, 2xx, 3xx, 4xx, 5xx
+  * headers [Hash] - { 'Content-Type' => 'text/plain' }
+  * body [Enumerable] - responds to `each`
+
+!SLIDE left
+
+## What does this look like
 
 !SLIDE left snippet
 
 ## Simplest Example
 
 ```ruby
-# examples/1_simple.ru
+# examples/1/config.ru
 
 run lambda { |env| [200, {}, ['Hello World!']] }
 ```
+
+```bash
+$ cd examples/1
+$ rackup -p 5000
+```
+
 <div class="run-example">
   <span>curl -i localhost:5000</span>
   <button class="clear">Clear</button>
@@ -86,7 +106,7 @@ run lambda { |env| [200, {}, ['Hello World!']] }
 ## Command Runner
 
 ```ruby
-# examples/2_class.ru
+# examples/2/config.ru
 
 class CommandRunner
 
@@ -123,7 +143,7 @@ run CommandRunner.new
 ## Middleware
 
 ```ruby
-# examples/3_middleware.ru
+# examples/3/config.ru
 
 class ContentLengthMiddleware
   def initialize(app)
@@ -147,7 +167,7 @@ run lambda { |env| [200, {}, ['Hello World!']] }
 
 !SLIDE left
 
-## rake middleware
+## $ rake middleware
 
 ```ruby
 # rails 4 app with Devise
@@ -176,26 +196,6 @@ use Rack::ETag
 use Warden::Manager
 run Sample::Application.routes
 ```
-
-!SLIDE left
-
-## [Rack::Lint](http://rack.rubyforge.org/doc/Rack/Lint.html)
-
-* Validates your application/middleware against the [Rack Spec](http://rack.rubyforge.org/doc/SPEC.html)
-* When used will show an error page if app violates spec
-
-```ruby
-# example/4_lint.ru
-
-use Rack::Lint
-run lambda { |env| [204, {'Content-Length' => '12'}, ['Hello World!']] }
-```
-<div class="run-example">
-  <span>curl -I localhost:5300</span>
-  <button class="clear">Clear</button>
-  <button class="run">Run</button>
-  <div class="result"></div>
-</div>
 
 !SLIDE left snippet
 
@@ -270,6 +270,7 @@ http://www.websequencediagrams.com/cgi-bin/cdraw?lz=aVBhZC0-UmFpbHM6IFBPU1QgUmVx
 
 ## How can we solve this?
 
+* Only use PUT requests
 * Ruby Module
 * Client Defined UUID
 * Rack Middleware
@@ -380,6 +381,8 @@ http://www.websequencediagrams.com/cgi-bin/cdraw?lz=Q2xpZW50LT5DYWNoZTogR0VUIC8K
 ## Rack Cache Example
 
 ```ruby
+# examples/4/config.ru
+
 use Rack::Cache
 run lambda { |env|
   headers = { 'Cache-Control' => 'max-age=5, public' }
@@ -387,7 +390,7 @@ run lambda { |env|
 }
 ```
 <div class="run-example">
-  <span>curl -i localhost:5500</span>
+  <span>curl -i localhost:5300</span>
   <button class="clear">Clear</button>
   <button class="run">Run</button>
   <div class="result"></div>
@@ -452,7 +455,7 @@ end
 ## Cucumber Test Login Backdoor
 
 ```ruby
-# examples/test.rb
+# config/environments/test.rb
 
 class DeviseBackDoor
   # ...
@@ -504,7 +507,7 @@ end
 ## Compression
 
 ```ruby
-# examples/7_compression.ru
+# examples/5/config.ru
 
 use Rack::Deflater
 run lambda { |env|
@@ -516,13 +519,13 @@ run lambda { |env|
 }
 ```
 <div class="run-example">
-  <span>curl -i localhost:5600 | wc -c</span>
+  <span>curl -i localhost:5400 | wc -c</span>
   <button class="clear">Clear</button>
   <button class="run">Run</button>
   <div class="result"></div>
 </div>
 <div class="run-example">
-  <span>curl -i -H 'Accept-Encoding: gzip,deflate' localhost:5600 | wc -c</span>
+  <span>curl -i -H 'Accept-Encoding: gzip,deflate' localhost:5400 | wc -c</span>
   <button class="clear">Clear</button>
   <button class="run">Run</button>
   <div class="result"></div>
@@ -533,20 +536,20 @@ run lambda { |env|
 ## Compression
 
 ```ruby
-# examples/8_compression_long.ru
+# examples/6/config.ru
 
 # ~1MB of content
 use Rack::Deflater
 run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
 ```
 <div class="run-example">
-  <span>curl -i localhost:5700 | wc -c</span>
+  <span>curl -i localhost:5500 | wc -c</span>
   <button class="clear">Clear</button>
   <button class="run">Run</button>
   <div class="result"></div>
 </div>
 <div class="run-example">
-  <span>curl -i -H 'Accept-Encoding: gzip,deflate' localhost:5700 | wc -c</span>
+  <span>curl -i -H 'Accept-Encoding: gzip,deflate' localhost:5500 | wc -c</span>
   <button class="clear">Clear</button>
   <button class="run">Run</button>
   <div class="result"></div>
@@ -563,13 +566,6 @@ run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
 * [Testing Gist](https://gist.github.com/calebwoods/5615260)
 
 !NOTES
-* Inline images - [Rack Embed](https://github.com/minad/rack-embed)
-
-## App Status
-
-* [Pinglish](https://github.com/jbarnette/pinglish)
-* https://github.com/TheClimateCorporation/unicorn-metrics
-* More about app status than 200 OK
 
 ## Gems that leverage Middleware
 
@@ -589,8 +585,9 @@ run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
 * Jose Valim - [You've a got a Sinatra on your Rails [RailsConf 2013]](http://www.confreaks.com/videos/2442-railsconf2013-you-ve-got-a-sinatra-on-your-rails)
   * Great look how Rails uses Rack internally
 * RailsCast - [Rack App from Scratch](http://railscasts.com/episodes/317-rack-app-from-scratch)
-* Jason Seifer - [32 Rack Resources to get you Started](http://jasonseifer.com/2009/04/08/32-rack-resources-to-get-you-started)
 * Rack Wiki - [List of Rack Middleware](https://github.com/rack/rack/wiki/List-of-Middleware)
+* [[Blog Post] 32 Rack Resources to get you Started](http://jasonseifer.com/2009/04/08/32-rack-resources-to-get-you-started)
+* [[Blog Post] Roll your own web framework in half an hour](http://svs.io/post/59495114366/roll-your-own-web-framework-in-half-an-hour)
 
 !SLIDE left
 
@@ -598,4 +595,5 @@ run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
 
 * Github repo: --coming soon--
 * Email: [caleb.woods@rolemodelsoftware.com](mailto:caleb.woods@rolemodelsoftware.com)
+* Twitter: [@calebwoods](https://twitter.com/calebwoods)
 * Traingle.rb Mailing List

@@ -1,2 +1,7 @@
-use Rack::Lint
-run lambda { |env| [204, {'Content-Length' => '12'}, ['Hello World!']] }
+require 'rack/cache'
+
+use Rack::Cache
+run lambda { |env|
+  headers = { 'Cache-Control' => 'max-age=5, public' }
+  [200, headers, ["Hello at: #{Time.now}"]]
+}
