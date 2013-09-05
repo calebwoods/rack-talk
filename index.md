@@ -693,8 +693,8 @@ run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
 
 ## Feedback
 
-* Github repo: [https://github.com/calebwoods/rack](https://github.com/calebwoods/rack)
+* Github repo: [https://github.com/calebwoods/rack-talk](https://github.com/calebwoods/rack-talk)
 * Email: [caleb.woods@rolemodelsoftware.com](mailto:caleb.woods@rolemodelsoftware.com)
 * Twitter: [@calebwoods](https://twitter.com/calebwoods)
 * Traingle.rb Mailing List
-* Slides: [http://calebwoods.github.io/rack](http://calebwoods.github.io/rack)
+* Slides: [http://calebwoods.github.io/rack-talk](http://calebwoods.github.io/rack-talk)
