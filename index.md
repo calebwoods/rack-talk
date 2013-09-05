@@ -11,25 +11,28 @@ Caleb Woods especially enjoys solving business problems with technology in a lea
 
 -- Run through notes --
 
-How to start - booting etc
 Diagram of Rack app
-Where to put middleware in a Rails app
 Diagram of Rack stack with middleware
 Default stack, Sinatra stack, Rails Stack
 Where is the next request called in the middleware
 Timing as an example to show details
 Ephisize should be can used in any Rack app
-Types of status, headers, body
-Example of environment
-Put examples in a directory
 
 Start with stack then getting into how Rack works and build from there
 
-example of basic auth
+example of basic auth - middleware that can take params
 
 use Rack::Auth::Basic do |username, password|
   username == 'admin' && password == 'secret'
 end
+
+--- implemented ---
+
+Example of environment
+How to start - booting etc
+Where to put middleware in a Rails app
+Put examples in a directory
+Types of status, headers, body
 
 !SLIDE
 
