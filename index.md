@@ -11,12 +11,10 @@ Caleb Woods especially enjoys solving business problems with technology in a lea
 
 -- Run through notes --
 
-Diagram of Rack app
-Diagram of Rack stack with middleware
 Default stack, Sinatra stack, Rails Stack
 Where is the next request called in the middleware
 Timing as an example to show details
-Ephisize should be can used in any Rack app
+Emphasize should be can used in any Rack app
 
 Start with stack then getting into how Rack works and build from there
 
@@ -28,6 +26,8 @@ end
 
 --- implemented ---
 
+Diagram of Rack app
+Diagram of Rack stack with middleware
 Example of environment
 How to start - booting etc
 Where to put middleware in a Rails app
@@ -73,39 +73,6 @@ Unified interface for all Ruby webservers to implement.
   * headers [Hash] - { 'Content-Type' => 'text/plain' }
   * body [Enumerable] - responds to `each`
 
-!SLIDE left snippet
-
-## Simplest Example
-
-```ruby
-# examples/1/config.ru
-
-run lambda { |env| [200, {}, ['Hello World!']] }
-```
-
-```bash
-$ cd examples/1
-$ rackup -p 5000
-```
-
-<div class="run-example">
-  <span>curl -i localhost:5000</span>
-  <button class="clear">Clear</button>
-  <button class="run">Run</button>
-  <div class="result"></div>
-</div>
-
-!NOTES
-
-* Lambda responds to call
-* `body` is an Array because it needs to respond to each
-
-!SLIDE diagram
-
-## Simplest Example
-
-# TODO diagram of simple example
-
 !SLIDE left
 
 ## Environment
@@ -137,6 +104,55 @@ $ rackup -p 5000
   "HTTP_ACCEPT_LANGUAGE" => "en-US,en;q=0.8",
   # ...
 ```
+!SLIDE diagram
+
+## Simplest Example
+
+![Simple Rack App](images/simple.png)
+
+!NOTES
+
+http://www.websequencediagrams.com/cgi-bin/cdraw?lz=Q2xpZW50LT5SYWNrIEFwcDogR0VUIC8Kbm90ZSByaWdodCBvZiAiABcIIjogY29tcHV0ZSByZXNwb25zZQoAMwgtPgBHBjogMjAwIE9LXG5IZWxsbyBXb3JkIQo&s=napkin
+
+!SLIDE left snippet
+
+## Simplest Example
+
+```ruby
+# examples/1/config.ru
+
+run lambda { |env| [200, {}, ['Hello World!']] }
+```
+
+
+
+<div class="run-example">
+  <span>curl -i localhost:5000</span>
+  <button class="clear">Clear</button>
+  <button class="run">Run</button>
+  <div class="result"></div>
+</div>
+
+!NOTES
+
+* Lambda responds to call
+* `body` is an Array because it needs to respond to each
+
+!SLIDE left snippet
+
+## Where does the code go?
+
+* config.ru (rackup file)
+* Ruby servers automatically look for a file named config.ru
+* It's a ruby file, require other files
+
+```bash
+$ cd examples/1
+
+$ rackup -p 5000
+$ thin start -p 5000
+$ unicorn -p 5000
+```
 
 !SLIDE left snippet
 
@@ -147,12 +163,23 @@ $ rackup -p 5000
 * Same spec, but adds an initializer that takes next app in stack
 
 ```ruby
-# middleware are declared as a class not an instance
+# config.ru
+# NOTE: middleware are declared as a class not an instance
 
 use FirstMiddleware
 use SecondMiddleware
 run Application.new
 ```
+
+!SLIDE diagram
+
+## Middleware
+
+![Basic Middleware](images/middleware.png)
+
+!NOTES
+
+http://www.websequencediagrams.com/cgi-bin/cdraw?lz=Q2xpZW50LT5GaXJzdE1pZGRsZXdhcmU6IEdFVCAvCgAIDy0-U2Vjb25kABcSAAgQLT5SYWNrIEFwcABDCG5vdGUgcmlnaHQgb2YgIgAXCCI6IGNvbXB1dGUgcmVzcG9uc2UKADMIAFsUMjAwIE9LXG5IZWxsbyBXb3JsZABqEwCBPhEAIxQAgUwRAIIHBgBOFg&s=napkin
 
 !SLIDE left
 
@@ -187,9 +214,13 @@ run lambda { |env| [200, {}, ['Hello World!']] }
 
 !SLIDE diagram
 
-## Middleware
+## ContentLength Middleware
 
-# TODO diagram of middleware call stack
+![ContentLength Middleware](images/content_length.png)
+
+!NOTES
+
+http://www.websequencediagrams.com/cgi-bin/cdraw?lz=Q2xpZW50LT5Db250ZW50TGVuZ3RoTWlkZGxld2FyZTogR0VUIC8KAAgXLT5SYWNrIEFwcAAhCG5vdGUgcmlnaHQgb2YgIgAXCCI6IGNvbXB1dGUgcmVzcG9uc2UKADMIAGIbMjAwIE9LXG5IZWxsbyBXb3JsZABcBm92ZXIgAIEbGUFkZAAVCC0AgUwGIGhlYWRlcgCBLhoAggIGAF0VXG4APg46IDExCg&s=napkin
 
 !SLIDE left
 
@@ -228,6 +259,8 @@ run Sample::Application.routes
 ## Adding Middleware - config.ru
 
 ```ruby
+# config.ru
+
 require 'server'
 require 'middleware/custom_middleware'
 
@@ -278,7 +311,7 @@ get "/", to: "posts#index"
 get "/", to: PostsController.action(:index)
 ```
 
-!SLIDE left
+!SLIDE left snippet
 
 ## Rails Router
 
@@ -286,10 +319,7 @@ get "/", to: PostsController.action(:index)
 * Mount (SintraApp) - matches on the path prefix
 
 ```ruby
-# REQUEST: GET /sinatra/sub_route
-
 get "/sinatra/specific", to: "posts#index"
-
 mount SintraApp, at: "/sinatra"
 
 # other uses
@@ -427,12 +457,11 @@ end
 
 ## 1st Request to Cache
 
-![Cache Second Request](images/cache_first.png)
+![Cache First Request](images/cache_first.png)
 
 !NOTES
 
-http://www.websequencediagrams.com/cgi-bin/cdraw?lz=Q2xpZW50LT5DYWNoZTogR0VUIC8KAAgFLT5CYWNrZW5kAA4Ibm90ZSByaWdodCBvZiAAFAlDb21wdXRlIHJlc3BvbnNlCgAwBwBLCTIwMCBPS1xuAFAGQ29udHJvbDogbWF4LWFnZT01AGcIAIEFBgANIw&s=napkin
-
+http://www.websequencediagrams.com/cgi-bin/cdraw?lz=Q2xpZW50LT4iUmFjazo6Q2FjaGUiOiBHRVQgLwoACA0tPkJhY2tlbmQAFghub3RlIHJpZ2h0IG9mIAAUCUNvbXB1dGUgcmVzcG9uc2UKADAHAFMRMjAwIE9LXG4AbwUtQ29udHJvbDogbWF4LWFnZT01AG8QAIElBgAVIw&s=napkin
 !SLIDE diagram
 
 ## 2nd Request to Cache
@@ -441,9 +470,9 @@ http://www.websequencediagrams.com/cgi-bin/cdraw?lz=Q2xpZW50LT5DYWNoZTogR0VUIC8K
 
 !NOTES
 
-http://www.websequencediagrams.com/cgi-bin/cdraw?lz=Q2xpZW50LT5DYWNoZTogR0VUIC8KAAgFLS0-PkJhY2tlbmQ6IERvZXMgbm90IGhhcHBlbgAbBwAuCGNhY2hlIGlzIGZyZXNoABQJAFYFOiAyMDAgT0tcbkFnZTogMVxuAFgGQ29udHJvbDogbWF4LWFnZT01Cg&s=napkin
+http://www.websequencediagrams.com/cgi-bin/cdraw?lz=Q2xpZW50LT4iUmFjazo6Q2FjaGUiOiBHRVQgLwoACA0tLT4-QmFja2VuZDogRG9lcyBub3QgaGFwcGVuABsPAD4QY2FjaGUgaXMgZnJlc2gAHRAAfQY6IDIwMCBPS1xuQWdlOiAxXG4AgQcFLUNvbnRyb2w6IG1heC1hZ2U9NQo&s=napkin
 
-!SLIDE left
+!SLIDE left snippet
 
 ## Rack Cache Example
 
@@ -468,8 +497,10 @@ run lambda { |env|
 ## Rack Cache in Rails
 
 ```ruby
+# app/controllers/posts_controller.rb
+
 def index
-  @posts = Post.by_date
+  @posts = Post.all
   fresh_when(@posts.maximum(:updated_at), public: true)
 end
 
@@ -500,8 +531,10 @@ end
 * Useful on pages that are same for every user
 
 ```ruby
+# app/controllers/posts_controller.rb
+
 def index
-  @posts = Post.by_date
+  @posts = Post.all
 
   respond_to do |format|
     format.html
@@ -514,8 +547,8 @@ end
 
 ## Cucumber Test Login Backdoor
 
-* What step is run most often in your cucumber suite?
-* Do we need to test the login form for every example?
+* The sign_in step is often run on almost every example
+* How can be avoid this overhead?
 
 !SLIDE left
 
@@ -567,7 +600,7 @@ end
 ## Compression
 
 * Slowest part of HTTP request is transport
-* Modern computers and phones can easily handle decompressing
+* Modern computers and phones can easily handle decompression
 
 !SLIDE left
 
@@ -641,13 +674,9 @@ run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
 * [Directory Viewer](https://github.com/rack/rack/blob/master/lib/rack/directory.rb)
 * [Chrome Logger](https://github.com/cookrn/chrome_logger)
 
-!SLIDE
-
-# Questions
-
 !SLIDE left
 
-# Resources
+## Resources
 
 * Jose Valim - [You've a got a Sinatra on your Rails [RailsConf 2013]](http://www.confreaks.com/videos/2442-railsconf2013-you-ve-got-a-sinatra-on-your-rails)
   * Great look how Rails uses Rack internally
@@ -656,11 +685,16 @@ run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
 * [[Blog Post] 32 Rack Resources to get you Started](http://jasonseifer.com/2009/04/08/32-rack-resources-to-get-you-started)
 * [[Blog Post] Roll your own web framework in half an hour](http://svs.io/post/59495114366/roll-your-own-web-framework-in-half-an-hour)
 
+!SLIDE
+
+# Questions
+
 !SLIDE left
 
-# Feedback
+## Feedback
 
-* Github repo: --coming soon--
+* Github repo: [https://github.com/calebwoods/rack](https://github.com/calebwoods/rack)
 * Email: [caleb.woods@rolemodelsoftware.com](mailto:caleb.woods@rolemodelsoftware.com)
 * Twitter: [@calebwoods](https://twitter.com/calebwoods)
 * Traingle.rb Mailing List
+* Slides: [http://calebwoods.github.io/rack](http://calebwoods.github.io/rack)
