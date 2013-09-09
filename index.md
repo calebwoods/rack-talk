@@ -143,11 +143,13 @@ run lambda { |env| [200, {}, ['Hello World!']] }
 ## Where does the code go?
 
 * config.ru (rackup file)
-* Ruby servers automatically look for a file named config.ru
+* Ruby webservers automatically look for a file named config.ru
 * It's a ruby file, require other files
 
 ```bash
 $ cd examples/1
+$ ls
+config.ru
 
 $ rackup -p 5000
 $ thin start -p 5000
@@ -159,8 +161,8 @@ $ unicorn -p 5000
 ## Middleware
 
 * Allows composition of a stack of Rack applications
-* [Rack::Build](http://rack.rubyforge.org/doc/Rack/Builder.html) provides a small DSL to this
-* Same spec, but adds an initializer that takes next app in stack
+* [Rack::Build](http://rack.rubyforge.org/doc/Rack/Builder.html) provides a small DSL
+* Same spec as an application, but adds an initializer that takes next app in stack
 
 ```ruby
 # config.ru
@@ -556,21 +558,16 @@ end
 
 ```ruby
 # config/environments/test.rb
+# SAMPLE URL: http://example.dev?as=100
 
 class DeviseBackDoor
   # ...
   def call(env)
-    @env = env
-    sign_in_through_the_back_door
-    @app.call(@env)
-  end
-
-  private
-  def sign_in_through_the_back_door
-    if user_id = Rack::Utils.parse_query(@env['QUERY_STRING'])['as']
+    if user_id = Rack::Utils.parse_query(env['QUERY_STRING'])['as']
       user = User.find(user_id)
       @env['warden'].session_serializer.store(user, :user)
     end
+    @app.call(env)
   end
 end
 
@@ -585,15 +582,8 @@ end
 ## Cucumber Test Login Backdoor
 
 * Replace sign_in step with `root_url(as: @user.id)`
-* Small Suite (64 examples) 4 second speedup (24 > 20)
+* Small Suite (64 examples) 4 second speedup (24 -> 20, 16%)
 * Source: [Thoughtbot Clearance Blog Post](http://robots.thoughtbot.com/post/37907699673/faster-tests-sign-in-through-the-back-door)
-
-!NOTES
-
-## External Request when Testing
-
-* SpreedlyCore middleware
-* Allows the use of VCR
 
 !SLIDE left
 
@@ -664,6 +654,7 @@ run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
 * [Rack::Deflater](https://github.com/rack/rack/blob/master/lib/rack/deflater.rb)
 * [Slide Deck](http://calebwoods.github.io/http-compression-rails)
 * [Testing Gist](https://gist.github.com/calebwoods/5615260)
+* [Nginx Gzip Module](http://nginx.org/en/docs/http/ngx_http_gzip_module.html)
 
 !NOTES
 
@@ -684,6 +675,8 @@ run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
 * Rack Wiki - [List of Rack Middleware](https://github.com/rack/rack/wiki/List-of-Middleware)
 * [[Blog Post] 32 Rack Resources to get you Started](http://jasonseifer.com/2009/04/08/32-rack-resources-to-get-you-started)
 * [[Blog Post] Roll your own web framework in half an hour](http://svs.io/post/59495114366/roll-your-own-web-framework-in-half-an-hour)
+* [[Github] alisnic/nyny](https://github.com/alisnic/nyny)
+  * Well factored Sinatra clone
 
 !SLIDE
 

@@ -121,12 +121,12 @@
         
         <ul>
         <li>config.ru (rackup file)</li>
-        <li>Ruby servers automatically look for a file named config.ru</li>
+        <li>Ruby webservers automatically look for a file named config.ru</li>
         <li>It's a ruby file, require other files</li>
         </ul>
         
         
-        <p><textarea class='code' display='none' mode='bash'>$ cd examples/1&#x000A;&#x000A;$ rackup -p 5000&#x000A;$ thin start -p 5000&#x000A;$ unicorn -p 5000</textarea>
+        <p><textarea class='code' display='none' mode='bash'>$ cd examples/1&#x000A;$ ls&#x000A;config.ru&#x000A;&#x000A;$ rackup -p 5000&#x000A;$ thin start -p 5000&#x000A;$ unicorn -p 5000</textarea>
     </p>
       </div>
       <div class='spacer bottom'></div>
@@ -138,8 +138,8 @@
         
         <ul>
         <li>Allows composition of a stack of Rack applications</li>
-        <li><a href="http://rack.rubyforge.org/doc/Rack/Builder.html">Rack::Build</a> provides a small DSL to this</li>
-        <li>Same spec, but adds an initializer that takes next app in stack</li>
+        <li><a href="http://rack.rubyforge.org/doc/Rack/Builder.html">Rack::Build</a> provides a small DSL</li>
+        <li>Same spec as an application, but adds an initializer that takes next app in stack</li>
         </ul>
         
         
@@ -436,7 +436,7 @@
       <div class='content'>
         <h2>Cucumber Test Login Backdoor</h2>
         
-        <p><textarea class='code' display='none' mode='ruby'># config/environments/test.rb&#x000A;&#x000A;class DeviseBackDoor&#x000A;  # ...&#x000A;  def call(env)&#x000A;    @env = env&#x000A;    sign_in_through_the_back_door&#x000A;    @app.call(@env)&#x000A;  end&#x000A;&#x000A;  private&#x000A;  def sign_in_through_the_back_door&#x000A;    if user_id = Rack::Utils.parse_query(@env['QUERY_STRING'])['as']&#x000A;      user = User.find(user_id)&#x000A;      @env['warden'].session_serializer.store(user, :user)&#x000A;    end&#x000A;  end&#x000A;end&#x000A;&#x000A;Sample::Application.configure do&#x000A;  # ...&#x000A;  config.middleware.use DeviseBackDoor&#x000A;end</textarea>
+        <p><textarea class='code' display='none' mode='ruby'># config/environments/test.rb&#x000A;# SAMPLE URL: http://example.dev?as=100&#x000A;&#x000A;class DeviseBackDoor&#x000A;  # ...&#x000A;  def call(env)&#x000A;    if user_id = Rack::Utils.parse_query(env['QUERY_STRING'])['as']&#x000A;      user = User.find(user_id)&#x000A;      @env['warden'].session_serializer.store(user, :user)&#x000A;    end&#x000A;    @app.call(env)&#x000A;  end&#x000A;end&#x000A;&#x000A;Sample::Application.configure do&#x000A;  # ...&#x000A;  config.middleware.use DeviseBackDoor&#x000A;end</textarea>
     </p>
       </div>
       <div class='spacer bottom'></div>
@@ -448,7 +448,7 @@
         
         <ul>
         <li>Replace sign_in step with <code>root_url(as: @user.id)</code></li>
-        <li>Small Suite (64 examples) 4 second speedup (24 > 20)</li>
+        <li>Small Suite (64 examples) 4 second speedup (24 -> 20, 16%)</li>
         <li>Source: <a href="http://robots.thoughtbot.com/post/37907699673/faster-tests-sign-in-through-the-back-door">Thoughtbot Clearance Blog Post</a></li>
         </ul>
       </div>
@@ -528,6 +528,7 @@
         <li><a href="https://github.com/rack/rack/blob/master/lib/rack/deflater.rb">Rack::Deflater</a></li>
         <li><a href="http://calebwoods.github.io/http-compression-rails">Slide Deck</a></li>
         <li><a href="https://gist.github.com/calebwoods/5615260">Testing Gist</a></li>
+        <li><a href="http://nginx.org/en/docs/http/ngx_http_gzip_module.html">Nginx Gzip Module</a></li>
         </ul>
       </div>
       <div class='spacer bottom'></div>
@@ -548,6 +549,12 @@
         <li>Rack Wiki - <a href="https://github.com/rack/rack/wiki/List-of-Middleware">List of Rack Middleware</a></li>
         <li><a href="http://jasonseifer.com/2009/04/08/32-rack-resources-to-get-you-started">[Blog Post] 32 Rack Resources to get you Started</a></li>
         <li><a href="http://svs.io/post/59495114366/roll-your-own-web-framework-in-half-an-hour">[Blog Post] Roll your own web framework in half an hour</a></li>
+        <li><a href="https://github.com/alisnic/nyny">[Github] alisnic/nyny</a>
+        
+        <ul>
+        <li>Well factored Sinatra clone</li>
+        </ul>
+        </li>
         </ul>
       </div>
       <div class='spacer bottom'></div>
@@ -562,13 +569,14 @@
     <section class='left slide'>
       <div class='spacer top'></div>
       <div class='content'>
-        <h1>Feedback</h1>
+        <h2>Feedback</h2>
         
         <ul>
-        <li>Github repo: --coming soon--</li>
+        <li>Github repo: <a href="https://github.com/calebwoods/rack-talk">https://github.com/calebwoods/rack-talk</a></li>
         <li>Email: <a href="mailto:caleb.woods@rolemodelsoftware.com">caleb.woods@rolemodelsoftware.com</a></li>
         <li>Twitter: <a href="https://twitter.com/calebwoods">@calebwoods</a></li>
         <li>Traingle.rb Mailing List</li>
+        <li>Slides: <a href="http://calebwoods.github.io/rack-talk">http://calebwoods.github.io/rack-talk</a></li>
         </ul>
       </div>
       <div class='spacer bottom'></div>
