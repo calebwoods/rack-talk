@@ -1,5 +1,8 @@
 /* Custom CSS for your KeyDown presentation here */
 
+.deck-container .slide {
+  overflow: hidden;
+}
 /* Uncomment to turn off deck.js navigation */
 .deck-prev-link,
 .deck-next-link {
