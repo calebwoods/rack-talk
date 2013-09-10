@@ -106,6 +106,8 @@ body {
       box-pack: start; }
       .keydown.deck-container .slide.full-background.field {
         background-image: url(../images/field.jpg); }
+      .keydown.deck-container .slide.full-background.cycling {
+        background-image: url(../images/cycling.jpg); }
       .keydown.deck-container .slide.full-background h1 {
         display: inline;
         position: absolute;

@@ -88,12 +88,20 @@
       </div>
       <div class='spacer bottom'></div>
     </section>
-    <section class='diagram slide'>
+    <section class='left slide snippet'>
       <div class='spacer top'></div>
       <div class='content'>
-        <h2>Simplest Example</h2>
+        <h2>Where does the code go?</h2>
         
-        <p><img src="images/simple.png" alt="Simple Rack App" /></p>
+        <ul>
+        <li>config.ru (rackup file)</li>
+        <li>Ruby webservers automatically look for a file named config.ru</li>
+        <li>It's a ruby file, so you can require other files</li>
+        </ul>
+        
+        
+        <p><textarea class='code' display='none' mode='bash'>$ cd examples/1&#x000A;$ ls&#x000A;config.ru&#x000A;&#x000A;$ rackup -p 5000&#x000A;$ thin start -p 5000&#x000A;$ unicorn -p 5000</textarea>
+    </p>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -114,20 +122,12 @@
       </div>
       <div class='spacer bottom'></div>
     </section>
-    <section class='left slide snippet'>
+    <section class='diagram slide'>
       <div class='spacer top'></div>
       <div class='content'>
-        <h2>Where does the code go?</h2>
+        <h2>Simplest Example</h2>
         
-        <ul>
-        <li>config.ru (rackup file)</li>
-        <li>Ruby webservers automatically look for a file named config.ru</li>
-        <li>It's a ruby file, so you can require other files</li>
-        </ul>
-        
-        
-        <p><textarea class='code' display='none' mode='bash'>$ cd examples/1&#x000A;$ ls&#x000A;config.ru&#x000A;&#x000A;$ rackup -p 5000&#x000A;$ thin start -p 5000&#x000A;$ unicorn -p 5000</textarea>
-    </p>
+        <p><img src="images/simple.png" alt="Simple Rack App" /></p>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -560,6 +560,16 @@
         </ul>
       </div>
       <div class='spacer bottom'></div>
+    </section>
+    <section class='cycling full-background slide'>
+      <div class='spacer top'></div>
+      <div class='content'>
+        <h1>Making Life Better</h1>
+      </div>
+      <div class='spacer bottom'></div>
+      <div class='attribution '>
+        <a target='_blank'>http://www.flickr.com/photos/mdpettitt/6808986687</a>
+      </div>
     </section>
     <section class='slide'>
       <div class='spacer top'></div>

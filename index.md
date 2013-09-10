@@ -684,6 +684,12 @@ run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
 
 !SLIDE
 
+# Making Life Better
+
+}}} images/cycling.jpg::http://www.flickr.com/photos/mdpettitt/6808986687
+
+!SLIDE
+
 # Questions
 
 !SLIDE left
