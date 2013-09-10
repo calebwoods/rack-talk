@@ -67,7 +67,7 @@ Unified interface for all Ruby webservers to implement.
 ## [Rack Spec](http://rack.rubyforge.org/doc/SPEC.html)
 
 * Ruby object that responds to `call`
-* Take 1 argument the `environment` [Hash]
+* Takes 1 argument `environment` [Hash]
 * Returns an Array with 3 values: status, headers, and body
   * status [Integer] - 1xx, 2xx, 3xx, 4xx, 5xx
   * headers [Hash] - { 'Content-Type' => 'text/plain' }
@@ -104,39 +104,6 @@ Unified interface for all Ruby webservers to implement.
   "HTTP_ACCEPT_LANGUAGE" => "en-US,en;q=0.8",
   # ...
 ```
-!SLIDE diagram
-
-## Simplest Example
-
-![Simple Rack App](images/simple.png)
-
-!NOTES
-
-http://www.websequencediagrams.com/cgi-bin/cdraw?lz=Q2xpZW50LT5SYWNrIEFwcDogR0VUIC8Kbm90ZSByaWdodCBvZiAiABcIIjogY29tcHV0ZSByZXNwb25zZQoAMwgtPgBHBjogMjAwIE9LXG5IZWxsbyBXb3JkIQo&s=napkin
-
-!SLIDE left snippet
-
-## Simplest Example
-
-```ruby
-# examples/1/config.ru
-
-run lambda { |env| [200, {}, ['Hello World!']] }
-```
-
-
-
-<div class="run-example">
-  <span>curl -i localhost:5000</span>
-  <button class="clear">Clear</button>
-  <button class="run">Run</button>
-  <div class="result"></div>
-</div>
-
-!NOTES
-
-* Lambda responds to call
-* `body` is an Array because it needs to respond to each
 
 !SLIDE left snippet
 
@@ -144,7 +111,7 @@ run lambda { |env| [200, {}, ['Hello World!']] }
 
 * config.ru (rackup file)
 * Ruby webservers automatically look for a file named config.ru
-* It's a ruby file, require other files
+* It's a ruby file, so you can require other files
 
 ```bash
 $ cd examples/1
@@ -158,11 +125,43 @@ $ unicorn -p 5000
 
 !SLIDE left snippet
 
+## Simplest Example
+
+```ruby
+# examples/1/config.ru
+
+run lambda { |env| [200, {}, ['Hello World!']] }
+```
+
+<div class="run-example">
+  <span>curl -i localhost:5000</span>
+  <button class="clear">Clear</button>
+  <button class="run">Run</button>
+  <div class="result"></div>
+</div>
+
+!NOTES
+
+* Lambda responds to call
+* `body` is an Array because it needs to respond to each
+
+!SLIDE diagram
+
+## Simplest Example
+
+![Simple Rack App](images/simple.png)
+
+!NOTES
+
+http://www.websequencediagrams.com/cgi-bin/cdraw?lz=Q2xpZW50LT5SYWNrIEFwcDogR0VUIC8Kbm90ZSByaWdodCBvZiAiABcIIjogY29tcHV0ZSByZXNwb25zZQoAMwgtPgBHBjogMjAwIE9LXG5IZWxsbyBXb3JsZAo&s=napkin
+
+!SLIDE left snippet
+
 ## Middleware
 
-* Allows composition of a stack of Rack applications
-* [Rack::Build](http://rack.rubyforge.org/doc/Rack/Builder.html) provides a small DSL
-* Same spec as an application, but adds an initializer that takes next app in stack
+* Stack of Rack applications
+* Use [Rack::Build](http://rack.rubyforge.org/doc/Rack/Builder.html) DSL to construct the stack
+* Same spec as an application, but adds an initializer that takes the next app in stack
 
 ```ruby
 # config.ru
@@ -303,7 +302,7 @@ end
 
 ## Rails Router
 
-The [Rails Router](https://github.com/rails/rails/blob/master/actionpack/lib/action_dispatch/routing/mapper.rb) uses the same principle, every action is Rack app
+The [Rails Router](https://github.com/rails/rails/blob/master/actionpack/lib/action_dispatch/routing/mapper.rb) uses the same principle, every action is a Rack app
 
 ```ruby
 # This standard route
@@ -363,7 +362,7 @@ http://www.websequencediagrams.com/cgi-bin/cdraw?lz=aVBhZC0-UmFpbHM6IFBPU1QgUmVx
 
 !NOTES
 
-http://www.websequencediagrams.com/cgi-bin/cdraw?lz=aVBhZC0-UmFpbHM6IFBPU1QgUmVxdWVzdApub3RlIHJpZ2h0IG9mIAAbBwAkBSBjcmVhdGVzIG9iamVjdCBpZDogMQoAPwUtLT4-aVBhZDogUmVzcG9uc2UgMjAwIC0gaVBhZCBsb3N0IGNvbm5lY3Rpb24KAHANUmV0cnkAWilzZWVzIGR1cGxpY2F0ZWQAdwcAbBA0MDkgLSBTYW1lIGJvZHkgYXMAgSYH&s=napkin
+http://www.websequencediagrams.com/cgi-bin/cdraw?lz=aVBhZC0-UmFpbHM6IFBPU1QgUmVxdWVzdApub3RlIHJpZ2h0IG9mIAAbBwAkBSBjcmVhdGVzIG9iamVjdCBpZDogMQoAPwUtLT4-aVBhZDogUmVzcG9uc2UgMjAwIC0gaVBhZCBsb3N0IGNvbm5lY3Rpb24KAHANUmV0cnkAYCNQcm9jZXNzZXMgYXMgRHVwbGljYXRlAHgHAG0QNDA5IC0gU2FtZSBib2R5IGFzAIEnBw&s=napkin
 
 !SLIDE left
 
@@ -406,9 +405,10 @@ end
 
 ## Idempotent Post Middleware
 
-* Make no changes to your app
-* Client just needs handle 409 response
-* Can be useful in other part of app
+* No changes made to application
+* Client only needs to handle 409 (Conflict) response
+  * Alternatively could be 303 (See Other)
+* Can be useful in other parts of app
   * Double submitting forms
 * Easy to test
 
@@ -423,7 +423,10 @@ describe Rack::IdempotentPost do
   include Rack::Test::Methods
 
   def app
-    Rack::IdempotentPost.new(inner_app)
+    Rack::IdempotentPost.new(lambda do |env|
+      @inner_app_called += 1
+      [200, {'Content-Type' => 'text/plain'}, ["Call Count #{@inner_app_called}"]]
+    end)
   end
   # ...
   it "returns same response for same request" do
@@ -444,7 +447,7 @@ end
 ## Other ways to use Middleware
 
 * Caching
-* Speed up Test Environment
+* Speed up test environment
 * Compression
 
 !SLIDE left
@@ -453,7 +456,7 @@ end
 
 * HTTP caching for Rack apps
 * 100% Ruby
-* Disk, memcached, and heap memory storage backends
+* Storage: disk, memcached, and heap memory
 
 !SLIDE diagram
 
@@ -509,8 +512,7 @@ end
 def show
   @post = Post.find(params[:id])
 
-  # if stale?(@post)
-  if stale?(etag: @post, last_modified: @post.updated_at, public: true)
+  if stale?(@post, public: true)
     respond_to do |format|
       format.html # show.html.erb
       format.json { render json: @post }
@@ -528,9 +530,9 @@ end
 
 ## Rack Cache
 
-* [Rack Cache Blog Post by Ryan Tomayko](http://tomayko.com/writings/things-caches-do)
-* [Heroku Dev Http Caching in Rails](https://devcenter.heroku.com/articles/http-caching-ruby-rails)
-* Useful on pages that are same for every user
+* [[Blog Post] Things Caches Do](http://tomayko.com/writings/things-caches-do)
+* [[Heroku Dev Center] Http Caching in Ruby with Rails](https://devcenter.heroku.com/articles/http-caching-ruby-rails)
+* Useful on pages that are the same for every user
 
 ```ruby
 # app/controllers/posts_controller.rb
@@ -550,7 +552,7 @@ end
 ## Cucumber Test Login Backdoor
 
 * The sign_in step is often run on almost every example
-* How can be avoid this overhead?
+* How can we avoid this overhead?
 
 !SLIDE left
 
@@ -582,7 +584,7 @@ end
 ## Cucumber Test Login Backdoor
 
 * Replace sign_in step with `root_url(as: @user.id)`
-* Small Suite (64 examples) 4 second speedup (24 -> 20, 16%)
+* Small Suite (64 examples) 4 second speedup (24 --> 20, 16%)
 * Source: [Thoughtbot Clearance Blog Post](http://robots.thoughtbot.com/post/37907699673/faster-tests-sign-in-through-the-back-door)
 
 !SLIDE left
@@ -603,7 +605,7 @@ use Rack::Deflater
 run lambda { |env|
   content = <<-TEXT
     Need some longish content to compress.
-    If content is too short compressing add overhead because of headers.
+    If content is too short compressing adds overhead because of Gzip headers.
   TEXT
   [200, {}, [content]]
 }
@@ -645,6 +647,8 @@ run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
   <div class="result"></div>
 </div>
 
+!NOTES
+
 `1060.5kb` of data becomes `9.7kb`
 
 !SLIDE left
@@ -670,7 +674,7 @@ run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
 ## Resources
 
 * Jose Valim - [You've a got a Sinatra on your Rails [RailsConf 2013]](http://www.confreaks.com/videos/2442-railsconf2013-you-ve-got-a-sinatra-on-your-rails)
-  * Great look how Rails uses Rack internally
+  * Great look at how Rails uses Rack internally
 * RailsCast - [Rack App from Scratch](http://railscasts.com/episodes/317-rack-app-from-scratch)
 * Rack Wiki - [List of Rack Middleware](https://github.com/rack/rack/wiki/List-of-Middleware)
 * [[Blog Post] 32 Rack Resources to get you Started](http://jasonseifer.com/2009/04/08/32-rack-resources-to-get-you-started)
@@ -687,7 +691,6 @@ run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
 ## Feedback
 
 * Github repo: [https://github.com/calebwoods/rack-talk](https://github.com/calebwoods/rack-talk)
+* Slides: [http://calebwoods.github.io/rack-talk](http://calebwoods.github.io/rack-talk)
 * Email: [caleb.woods@rolemodelsoftware.com](mailto:caleb.woods@rolemodelsoftware.com)
 * Twitter: [@calebwoods](https://twitter.com/calebwoods)
-* Traingle.rb Mailing List
-* Slides: [http://calebwoods.github.io/rack-talk](http://calebwoods.github.io/rack-talk)

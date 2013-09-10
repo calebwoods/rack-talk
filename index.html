@@ -65,7 +65,7 @@
         
         <ul>
         <li>Ruby object that responds to <code>call</code></li>
-        <li>Take 1 argument the <code>environment</code> [Hash]</li>
+        <li>Takes 1 argument <code>environment</code> [Hash]</li>
         <li>Returns an Array with 3 values: status, headers, and body
         
         <ul>
@@ -122,7 +122,7 @@
         <ul>
         <li>config.ru (rackup file)</li>
         <li>Ruby webservers automatically look for a file named config.ru</li>
-        <li>It's a ruby file, require other files</li>
+        <li>It's a ruby file, so you can require other files</li>
         </ul>
         
         
@@ -137,9 +137,9 @@
         <h2>Middleware</h2>
         
         <ul>
-        <li>Allows composition of a stack of Rack applications</li>
-        <li><a href="http://rack.rubyforge.org/doc/Rack/Builder.html">Rack::Build</a> provides a small DSL</li>
-        <li>Same spec as an application, but adds an initializer that takes next app in stack</li>
+        <li>Stack of Rack applications</li>
+        <li>Use <a href="http://rack.rubyforge.org/doc/Rack/Builder.html">Rack::Build</a> DSL to construct the stack</li>
+        <li>Same spec as an application, but adds an initializer that takes the next app in stack</li>
         </ul>
         
         
@@ -218,7 +218,7 @@
       <div class='content'>
         <h2>Rails Router</h2>
         
-        <p>The <a href="https://github.com/rails/rails/blob/master/actionpack/lib/action_dispatch/routing/mapper.rb">Rails Router</a> uses the same principle, every action is Rack app</p>
+        <p>The <a href="https://github.com/rails/rails/blob/master/actionpack/lib/action_dispatch/routing/mapper.rb">Rails Router</a> uses the same principle, every action is a Rack app</p>
         
         <p><textarea class='code' display='none' mode='ruby'># This standard route&#x000A;get "/", to: "posts#index"&#x000A;&#x000A;# maps to&#x000A;get "/", to: PostsController.action(:index)</textarea>
     </p>
@@ -308,9 +308,14 @@
         <h2>Idempotent Post Middleware</h2>
         
         <ul>
-        <li>Make no changes to your app</li>
-        <li>Client just needs handle 409 response</li>
-        <li>Can be useful in other part of app
+        <li>No changes made to application</li>
+        <li>Client only needs to handle 409 (Conflict) response
+        
+        <ul>
+        <li>Alternatively could be 303 (See Other)</li>
+        </ul>
+        </li>
+        <li>Can be useful in other parts of app
         
         <ul>
         <li>Double submitting forms</li>
@@ -326,7 +331,7 @@
       <div class='content'>
         <h2>Testing Middleware</h2>
         
-        <p><textarea class='code' display='none' mode='ruby'># examples/idempotent_post_spec.rb&#x000A;&#x000A;describe Rack::IdempotentPost do&#x000A;  include Rack::Test::Methods&#x000A;&#x000A;  def app&#x000A;    Rack::IdempotentPost.new(inner_app)&#x000A;  end&#x000A;  # ...&#x000A;  it "returns same response for same request" do&#x000A;    post "/posts", { sample_data: 'sample_value' }&#x000A;    first_repsonse = last_response.body&#x000A;&#x000A;    post "/posts", { sample_data: 'sample_value' }&#x000A;    second_response last_response.body&#x000A;&#x000A;    second_response.should eq first_repsonse&#x000A;    @inner_app_called.should eq 1&#x000A;  end&#x000A;end</textarea>
+        <p><textarea class='code' display='none' mode='ruby'># examples/idempotent_post_spec.rb&#x000A;&#x000A;describe Rack::IdempotentPost do&#x000A;  include Rack::Test::Methods&#x000A;&#x000A;  def app&#x000A;    Rack::IdempotentPost.new(lambda do |env|&#x000A;      @inner_app_called += 1&#x000A;      [200, {'Content-Type' => 'text/plain'}, ["Call Count #{@inner_app_called}"]]&#x000A;    end)&#x000A;  end&#x000A;  # ...&#x000A;  it "returns same response for same request" do&#x000A;    post "/posts", { sample_data: 'sample_value' }&#x000A;    first_repsonse = last_response.body&#x000A;&#x000A;    post "/posts", { sample_data: 'sample_value' }&#x000A;    second_response last_response.body&#x000A;&#x000A;    second_response.should eq first_repsonse&#x000A;    @inner_app_called.should eq 1&#x000A;  end&#x000A;end</textarea>
     </p>
       </div>
       <div class='spacer bottom'></div>
@@ -338,7 +343,7 @@
         
         <ul>
         <li>Caching</li>
-        <li>Speed up Test Environment</li>
+        <li>Speed up test environment</li>
         <li>Compression</li>
         </ul>
       </div>
@@ -352,7 +357,7 @@
         <ul>
         <li>HTTP caching for Rack apps</li>
         <li>100% Ruby</li>
-        <li>Disk, memcached, and heap memory storage backends</li>
+        <li>Storage: disk, memcached, and heap memory</li>
         </ul>
       </div>
       <div class='spacer bottom'></div>
@@ -397,7 +402,7 @@
       <div class='content'>
         <h2>Rack Cache in Rails</h2>
         
-        <p><textarea class='code' display='none' mode='ruby'># app/controllers/posts_controller.rb&#x000A;&#x000A;def index&#x000A;  @posts = Post.all&#x000A;  fresh_when(@posts.maximum(:updated_at), public: true)&#x000A;end&#x000A;&#x000A;def show&#x000A;  @post = Post.find(params[:id])&#x000A;&#x000A;  # if stale?(@post)&#x000A;  if stale?(etag: @post, last_modified: @post.updated_at, public: true)&#x000A;    respond_to do |format|&#x000A;      format.html # show.html.erb&#x000A;      format.json { render json: @post }&#x000A;    end&#x000A;  end&#x000A;end&#x000A;&#x000A;def archive&#x000A;  @post = Post.archived&#x000A;  expires_in 3.days, public: true&#x000A;end</textarea>
+        <p><textarea class='code' display='none' mode='ruby'># app/controllers/posts_controller.rb&#x000A;&#x000A;def index&#x000A;  @posts = Post.all&#x000A;  fresh_when(@posts.maximum(:updated_at), public: true)&#x000A;end&#x000A;&#x000A;def show&#x000A;  @post = Post.find(params[:id])&#x000A;&#x000A;  if stale?(@post, public: true)&#x000A;    respond_to do |format|&#x000A;      format.html # show.html.erb&#x000A;      format.json { render json: @post }&#x000A;    end&#x000A;  end&#x000A;end&#x000A;&#x000A;def archive&#x000A;  @post = Post.archived&#x000A;  expires_in 3.days, public: true&#x000A;end</textarea>
     </p>
       </div>
       <div class='spacer bottom'></div>
@@ -408,9 +413,9 @@
         <h2>Rack Cache</h2>
         
         <ul>
-        <li><a href="http://tomayko.com/writings/things-caches-do">Rack Cache Blog Post by Ryan Tomayko</a></li>
-        <li><a href="https://devcenter.heroku.com/articles/http-caching-ruby-rails">Heroku Dev Http Caching in Rails</a></li>
-        <li>Useful on pages that are same for every user</li>
+        <li><a href="http://tomayko.com/writings/things-caches-do">[Blog Post] Things Caches Do</a></li>
+        <li><a href="https://devcenter.heroku.com/articles/http-caching-ruby-rails">[Heroku Dev Center] Http Caching in Ruby with Rails</a></li>
+        <li>Useful on pages that are the same for every user</li>
         </ul>
         
         
@@ -426,7 +431,7 @@
         
         <ul>
         <li>The sign_in step is often run on almost every example</li>
-        <li>How can be avoid this overhead?</li>
+        <li>How can we avoid this overhead?</li>
         </ul>
       </div>
       <div class='spacer bottom'></div>
@@ -448,7 +453,7 @@
         
         <ul>
         <li>Replace sign_in step with <code>root_url(as: @user.id)</code></li>
-        <li>Small Suite (64 examples) 4 second speedup (24 -> 20, 16%)</li>
+        <li>Small Suite (64 examples) 4 second speedup (24 --> 20, 16%)</li>
         <li>Source: <a href="http://robots.thoughtbot.com/post/37907699673/faster-tests-sign-in-through-the-back-door">Thoughtbot Clearance Blog Post</a></li>
         </ul>
       </div>
@@ -471,7 +476,7 @@
       <div class='content'>
         <h2>Compression</h2>
         
-        <p><textarea class='code' display='none' mode='ruby'># examples/5/config.ru&#x000A;&#x000A;use Rack::Deflater&#x000A;run lambda { |env|&#x000A;  content = <<-TEXT&#x000A;    Need some longish content to compress.&#x000A;    If content is too short compressing add overhead because of headers.&#x000A;  TEXT&#x000A;  [200, {}, [content]]&#x000A;}</textarea>
+        <p><textarea class='code' display='none' mode='ruby'># examples/5/config.ru&#x000A;&#x000A;use Rack::Deflater&#x000A;run lambda { |env|&#x000A;  content = <<-TEXT&#x000A;    Need some longish content to compress.&#x000A;    If content is too short compressing adds overhead because of Gzip headers.&#x000A;  TEXT&#x000A;  [200, {}, [content]]&#x000A;}</textarea>
     </p>
         
         <div class="run-example">
@@ -513,9 +518,6 @@
           <button class="run">Run</button>
           <div class="result"></div>
         </div>
-        
-        
-        <p><code>1060.5kb</code> of data becomes <code>9.7kb</code></p>
       </div>
       <div class='spacer bottom'></div>
     </section>
@@ -542,7 +544,7 @@
         <li>Jose Valim - <a href="http://www.confreaks.com/videos/2442-railsconf2013-you-ve-got-a-sinatra-on-your-rails">You've a got a Sinatra on your Rails [RailsConf 2013]</a>
         
         <ul>
-        <li>Great look how Rails uses Rack internally</li>
+        <li>Great look at how Rails uses Rack internally</li>
         </ul>
         </li>
         <li>RailsCast - <a href="http://railscasts.com/episodes/317-rack-app-from-scratch">Rack App from Scratch</a></li>
@@ -573,10 +575,9 @@
         
         <ul>
         <li>Github repo: <a href="https://github.com/calebwoods/rack-talk">https://github.com/calebwoods/rack-talk</a></li>
+        <li>Slides: <a href="http://calebwoods.github.io/rack-talk">http://calebwoods.github.io/rack-talk</a></li>
         <li>Email: <a href="mailto:caleb.woods@rolemodelsoftware.com">caleb.woods@rolemodelsoftware.com</a></li>
         <li>Twitter: <a href="https://twitter.com/calebwoods">@calebwoods</a></li>
-        <li>Traingle.rb Mailing List</li>
-        <li>Slides: <a href="http://calebwoods.github.io/rack-talk">http://calebwoods.github.io/rack-talk</a></li>
         </ul>
       </div>
       <div class='spacer bottom'></div>
