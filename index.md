@@ -617,7 +617,7 @@ run lambda { |env|
   <div class="result"></div>
 </div>
 <div class="run-example">
-  <span>curl -i -H 'Accept-Encoding: gzip,deflate' localhost:5400 | wc -c</span>
+  <span>curl -i -H 'Accept-Encoding: gzip' localhost:5400 | wc -c</span>
   <button class="clear">Clear</button>
   <button class="run">Run</button>
   <div class="result"></div>
@@ -641,7 +641,7 @@ run lambda { |env| [200, {}, [File.read('./lots_o_content.txt')]] }
   <div class="result"></div>
 </div>
 <div class="run-example">
-  <span>curl -i -H 'Accept-Encoding: gzip,deflate' localhost:5500 | wc -c</span>
+  <span>curl -i -H 'Accept-Encoding: gzip' localhost:5500 | wc -c</span>
   <button class="clear">Clear</button>
   <button class="run">Run</button>
   <div class="result"></div>
