@@ -9,31 +9,6 @@ We'll then look at a number of real world examples of how Rack and Rack Middlewa
 Caleb Woods especially enjoys solving business problems with technology in a lean approach.  At RoleModel Software he works with clients solving problems with Ruby and Service Oriented Architecture.  Caleb is also passionate about mentorship and is always looking for ways to teach and learn from other developers.
 
 
--- Run through notes --
-
-Default stack, Sinatra stack, Rails Stack
-Where is the next request called in the middleware
-Timing as an example to show details
-Emphasize should be can used in any Rack app
-
-Start with stack then getting into how Rack works and build from there
-
-example of basic auth - middleware that can take params
-
-use Rack::Auth::Basic do |username, password|
-  username == 'admin' && password == 'secret'
-end
-
---- implemented ---
-
-Diagram of Rack app
-Diagram of Rack stack with middleware
-Example of environment
-How to start - booting etc
-Where to put middleware in a Rails app
-Put examples in a directory
-Types of status, headers, body
-
 !SLIDE
 
 # Rack
